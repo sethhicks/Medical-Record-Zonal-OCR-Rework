@@ -67,26 +67,24 @@
 
 ## Traceability
 
-*Filled by roadmapper.*
-
 | REQ-ID | Phase |
 |--------|-------|
-| ENV-01 | — |
-| ENV-02 | — |
-| PROC-01 | — |
-| PROC-02 | — |
-| PROC-03 | — |
-| PROC-04 | — |
-| EXTR-01 | — |
-| EXTR-02 | — |
-| EXTR-03 | — |
-| EXTR-04 | — |
-| OUT-01 | — |
-| OUT-02 | — |
-| OUT-03 | — |
-| OUT-04 | — |
-| OUT-05 | — |
-| UI-01 | — |
-| UI-02 | — |
-| UI-03 | — |
-| UI-04 | — |
+| ENV-01 | Phase 1 |
+| ENV-02 | Phase 1 |
+| PROC-01 | Phase 2 |
+| PROC-02 | Phase 2 |
+| PROC-03 | Phase 3 |
+| PROC-04 | Phase 6 |
+| EXTR-01 | Phase 4 |
+| EXTR-02 | Phase 4 |
+| EXTR-03 | Phase 4 |
+| EXTR-04 | Phase 2 |
+| OUT-01 | Phase 5 |
+| OUT-02 | Phase 5 |
+| OUT-03 | Phase 5 |
+| OUT-04 | Phase 5 |
+| OUT-05 | Phase 5 |
+| UI-01 | Phase 6 |
+| UI-02 | Phase 6 |
+| UI-03 | Phase 6 |
+| UI-04 | Phase 6 |
