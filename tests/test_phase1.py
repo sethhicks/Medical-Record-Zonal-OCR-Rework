@@ -117,7 +117,6 @@ def test_settings_override(tmp_path):
     assert "tesseract_cmd" in s  # default key still present
 
 
-@pytest.mark.skip(reason="models/ and config/ not yet created — implemented in 01-02-PLAN")
 def test_imports():
     """FieldResult, FieldDef, TableFieldDef are importable from expected locations."""
     from models import FieldResult
