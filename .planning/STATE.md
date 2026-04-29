@@ -2,14 +2,14 @@
 
 ## Current Position
 - Milestone: v1.0
-- Current Phase: Not started
+- Current Phase: Phase 1 — Foundation & Environment
 - Last Updated: 2026-04-28
 
 ## Phase Status
 
 | # | Phase | Status |
 |---|-------|--------|
-| 1 | Foundation & Environment | Not Started |
+| 1 | Foundation & Environment | Ready to execute (4 plans) |
 | 2 | Image Pipeline & Coordinate Calibration | Not Started |
 | 3 | Form Detection | Not Started |
 | 4 | Field Extraction — CMS-1500 & UB-04 | Not Started |
@@ -20,13 +20,15 @@
 
 - 2026-04-28: Project initialized, research complete, requirements defined (19 v1 requirements)
 - 2026-04-28: Roadmap created — 6 phases, 19/19 v1 requirements mapped
+- 2026-04-28: Phase 1 context gathered — PDF backend decision locked (Poppler-only, no PyMuPDF fallback); resume: .planning/phases/01-foundation-environment/01-CONTEXT.md
+- 2026-04-28: Phase 1 planned — 4 plans in 2 waves; Wave 0 (test infra), Wave 1 (skeleton, settings loader, dependency validator)
 
 ## Open Decisions
 
 - ICD-10 dot format (F32.9 vs F329) — confirm with user before Phase 4; affects character whitelist and any downstream consumer of the Excel output
 - Confidence threshold default (60%) — validate against a real representative batch during Phase 4 calibration
 - Output filename/directory convention — confirm before Phase 6 UI build (affects open-output button target path)
-- PyMuPDF fallback — decide whether `setup_check.py` auto-switches to PyMuPDF when Poppler is absent, or requires explicit config flag (resolve in Phase 1)
+- ~~PyMuPDF fallback~~ **Resolved (Phase 1):** Poppler-only; app exits with clear error if Poppler is missing — no fallback
 
 ## Notes
 

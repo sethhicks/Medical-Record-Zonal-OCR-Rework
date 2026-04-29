@@ -4,7 +4,7 @@
 
 | # | Phase | Goal | Requirements | Status |
 |---|-------|------|--------------|--------|
-| 1 | Foundation & Environment | Project skeleton, dependency validation, and shared config are in place so all downstream phases build on a verified base | ENV-01, ENV-02 | Not Started |
+| 1 | Foundation & Environment | Project skeleton, dependency validation, and shared config are in place so all downstream phases build on a verified base | ENV-01, ENV-02 | Ready to execute |
 | 2 | Image Pipeline & Coordinate Calibration | Every PDF page converts to a correctly-scaled, deskewed, thresholded image and every field region is visually verified against real scans before extractor code is written | PROC-01, PROC-02, EXTR-04 | Not Started |
 | 3 | Form Detection | Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched | PROC-03 | Not Started |
 | 4 | Field Extraction — CMS-1500 & UB-04 | All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result | EXTR-01, EXTR-02, EXTR-03 | Not Started |
@@ -95,7 +95,7 @@ Plans:
 
 | Phase | Status | Completed |
 |-------|--------|-----------|
-| 1. Foundation & Environment | Not Started | — |
+| 1. Foundation & Environment | Ready to execute | — |
 | 2. Image Pipeline & Coordinate Calibration | Not Started | — |
 | 3. Form Detection | Not Started | — |
 | 4. Field Extraction — CMS-1500 & UB-04 | Not Started | — |
