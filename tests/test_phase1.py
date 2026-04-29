@@ -18,14 +18,12 @@ import pytest
 # ENV-01: setup_check behavior
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="setup_check.py not yet created — implemented in 01-04-PLAN")
 def test_checks_pass():
     """run_checks() returns True when both binaries exist at configured paths."""
     import setup_check
     assert setup_check.run_checks(quiet=True) is True
 
 
-@pytest.mark.skip(reason="setup_check.py not yet created — implemented in 01-04-PLAN")
 def test_tesseract_missing():
     """run_checks() returns False when tesseract path is bogus."""
     import setup_check
@@ -36,7 +34,6 @@ def test_tesseract_missing():
     assert setup_check.run_checks(settings=bogus, quiet=True) is False
 
 
-@pytest.mark.skip(reason="setup_check.py not yet created — implemented in 01-04-PLAN")
 def test_poppler_missing():
     """run_checks() returns False when poppler path is bogus."""
     import setup_check
@@ -47,7 +44,6 @@ def test_poppler_missing():
     assert setup_check.run_checks(settings=bogus, quiet=True) is False
 
 
-@pytest.mark.skip(reason="setup_check.py not yet created — implemented in 01-04-PLAN")
 def test_standalone_exit_ok():
     """python setup_check.py exits 0 when binaries are reachable."""
     result = subprocess.run(
@@ -57,7 +53,6 @@ def test_standalone_exit_ok():
     assert result.returncode == 0
 
 
-@pytest.mark.skip(reason="setup_check.py not yet created — implemented in 01-04-PLAN")
 def test_standalone_exit_fail():
     """python setup_check.py exits 1 when a binary path is bogus."""
     import json
