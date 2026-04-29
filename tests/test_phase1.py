@@ -90,7 +90,6 @@ def test_standalone_exit_fail():
 # ENV-02: settings loader + dataclass imports
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="config_loader.py not yet created — implemented in 01-03-PLAN")
 def test_defaults_no_file(tmp_path):
     """load_settings() returns all 4 keys when settings.json is absent."""
     from config_loader import load_settings
@@ -102,7 +101,6 @@ def test_defaults_no_file(tmp_path):
     assert "output_dir" in s
 
 
-@pytest.mark.skip(reason="config_loader.py not yet created — implemented in 01-03-PLAN")
 def test_settings_override(tmp_path):
     """load_settings() merges user values over defaults."""
     import json
