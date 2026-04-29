@@ -23,7 +23,12 @@
 1. Running `python setup_check.py` on a machine with Tesseract and Poppler installed prints a clear "OK" confirmation for each binary; running it without either installed prints a specific error identifying which dependency is missing and exits non-zero.
 2. A `settings.json` file with `tesseract_cmd`, `poppler_path`, `confidence_threshold`, and `output_dir` keys is read at startup and overrides the built-in defaults; removing `settings.json` entirely causes the application to start with defaults rather than crash.
 3. The shared `FieldResult` dataclass and `FieldDef`/`TableFieldDef` coordinate dataclasses exist in the `models/` and `config/` modules and are importable from any other module in the project.
-**Plans:** TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Install pytest and create test scaffold (Wave 0)
+- [ ] 01-02-PLAN.md — Project skeleton: models/, config/ packages with dataclasses (Wave 1)
+- [ ] 01-03-PLAN.md — Settings loader: config_loader.py with load_settings() (Wave 1)
+- [ ] 01-04-PLAN.md — Dependency validator: setup_check.py with run_checks() (Wave 1)
 
 ### Phase 2: Image Pipeline & Coordinate Calibration
 **Goal:** Every PDF page converts to a correctly-scaled, deskewed, thresholded image and every field region is visually verified against real scans before extractor code is written.
