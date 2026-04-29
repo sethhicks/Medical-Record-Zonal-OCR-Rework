@@ -24,6 +24,7 @@
 - 2026-04-28: Phase 1 planned — 4 plans in 2 waves; Wave 0 (test infra), Wave 1 (skeleton, settings loader, dependency validator)
 - 2026-04-28: Phase 1 complete — all 4 plans executed; 8/8 tests passing; Tesseract 5.5.0 and Poppler confirmed on machine
 - 2026-04-29: Phase 1 verified — 3/3 success criteria met; VERIFICATION.md committed
+- 2026-04-29: Phase 2 context gathered — pipeline/calibrate/coordinate decisions locked; resume: .planning/phases/02-image-pipeline-coordinate-calibration/02-CONTEXT.md
 
 ## Open Decisions
 
