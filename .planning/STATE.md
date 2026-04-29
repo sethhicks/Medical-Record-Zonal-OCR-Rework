@@ -2,14 +2,14 @@
 
 ## Current Position
 - Milestone: v1.0
-- Current Phase: Phase 1 — Foundation & Environment
-- Last Updated: 2026-04-28
+- Current Phase: Phase 2 — Image Pipeline & Coordinate Calibration
+- Last Updated: 2026-04-29
 
 ## Phase Status
 
 | # | Phase | Status |
 |---|-------|--------|
-| 1 | Foundation & Environment | Ready to execute (4 plans) |
+| 1 | Foundation & Environment | Complete (4/4 plans) |
 | 2 | Image Pipeline & Coordinate Calibration | Not Started |
 | 3 | Form Detection | Not Started |
 | 4 | Field Extraction — CMS-1500 & UB-04 | Not Started |
@@ -22,6 +22,8 @@
 - 2026-04-28: Roadmap created — 6 phases, 19/19 v1 requirements mapped
 - 2026-04-28: Phase 1 context gathered — PDF backend decision locked (Poppler-only, no PyMuPDF fallback); resume: .planning/phases/01-foundation-environment/01-CONTEXT.md
 - 2026-04-28: Phase 1 planned — 4 plans in 2 waves; Wave 0 (test infra), Wave 1 (skeleton, settings loader, dependency validator)
+- 2026-04-28: Phase 1 complete — all 4 plans executed; 8/8 tests passing; Tesseract 5.5.0 and Poppler confirmed on machine
+- 2026-04-29: Phase 1 verified — 3/3 success criteria met; VERIFICATION.md committed
 
 ## Open Decisions
 
