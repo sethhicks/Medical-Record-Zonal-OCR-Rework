@@ -104,7 +104,7 @@ Plans:
 | Phase | Status | Completed |
 |-------|--------|-----------|
 | 1. Foundation & Environment | Complete | 2026-04-29 |
-| 2. Image Pipeline & Coordinate Calibration | Not Started | — |
+| 2. Image Pipeline & Coordinate Calibration | Ready to execute | — |
 | 3. Form Detection | Not Started | — |
 | 4. Field Extraction — CMS-1500 & UB-04 | Not Started | — |
 | 5. Output & Excel Export | Not Started | — |

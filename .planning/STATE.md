@@ -10,7 +10,7 @@
 | # | Phase | Status |
 |---|-------|--------|
 | 1 | Foundation & Environment | Complete (4/4 plans) |
-| 2 | Image Pipeline & Coordinate Calibration | Not Started |
+| 2 | Image Pipeline & Coordinate Calibration | Ready to execute (7/7 plans) |
 | 3 | Form Detection | Not Started |
 | 4 | Field Extraction — CMS-1500 & UB-04 | Not Started |
 | 5 | Output & Excel Export | Not Started |
@@ -25,6 +25,7 @@
 - 2026-04-28: Phase 1 complete — all 4 plans executed; 8/8 tests passing; Tesseract 5.5.0 and Poppler confirmed on machine
 - 2026-04-29: Phase 1 verified — 3/3 success criteria met; VERIFICATION.md committed
 - 2026-04-29: Phase 2 context gathered — pipeline/calibrate/coordinate decisions locked; resume: .planning/phases/02-image-pipeline-coordinate-calibration/02-CONTEXT.md
+- 2026-04-29: Phase 2 planned — 7 plans in 3 waves; Wave 0 (test scaffold), Wave 1 (settings, coords, converter, preprocessor), Wave 2 (calibration script)
 
 ## Open Decisions
 
