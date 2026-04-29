@@ -39,7 +39,15 @@ Plans:
 2. The calibration script renders a chosen page of `test.pdf` with every configured CMS-1500 and UB-04 field region drawn as a labeled rectangle, and the resulting image can be visually inspected to confirm regions land on the correct form boxes.
 3. After OpenCV preprocessing, the Box 24 grey-banded service line rows on a CMS-1500 page are visibly cleaner than the raw scan (adaptive threshold removes the grey band); deskew corrects a deliberately tilted test image back to within 0.5 degrees of vertical.
 4. The scale-correction step computes `scale_x` and `scale_y` from the detected form bounding box and applies them to all field coordinates before any crop, confirmed by the calibration overlay remaining aligned on pages that differ slightly in physical scan size.
-**Plans:** TBD
+**Plans:** 7 plans
+Plans:
+- [ ] 02-01-PLAN.md — Test scaffold: tests/test_phase2.py (15 stubs) + tests/conftest.py (Wave 0)
+- [ ] 02-02-PLAN.md — Settings extension: add threshold_block_size=31 to config_loader._DEFAULTS (Wave 1)
+- [ ] 02-03-PLAN.md — CMS-1500 coordinates: populate CMS1500_FIELDS (29) + CMS1500_TABLE_FIELDS (10) (Wave 1)
+- [ ] 02-04-PLAN.md — UB-04 coordinates: populate UB04_FIELDS (24) + UB04_TABLE_FIELDS (7) (Wave 1)
+- [ ] 02-05-PLAN.md — PDF converter: pipeline/__init__.py + pipeline/converter.py (Wave 1)
+- [ ] 02-06-PLAN.md — Preprocessor: pipeline/preprocessor.py — scale correction, deskew, adaptive threshold (Wave 1)
+- [ ] 02-07-PLAN.md — Calibration script: pipeline/calibrate.py CLI with overlay rendering (Wave 2)
 
 ### Phase 3: Form Detection
 **Goal:** Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched.
