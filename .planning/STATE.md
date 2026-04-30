@@ -29,6 +29,7 @@
 - 2026-04-30: Phase 2 plan 02-02 complete — threshold_block_size=31 added to config_loader._DEFAULTS; test_settings_threshold_block_size_default passes green
 - 2026-04-30: Phase 2 plan 02-03 complete — CMS1500_FIELDS (29 FieldDef) and CMS1500_TABLE_FIELDS (10 TableFieldDef, 6 rows each) populated in config/cms1500.py; both coordinate tests pass green
 - 2026-04-30: Phase 2 plan 02-04 complete — UB04_FIELDS (24 FieldDef) and UB04_TABLE_FIELDS (7 TableFieldDef, 22 rows each) populated in config/ub04.py; both coordinate tests pass green
+- 2026-04-30: Phase 2 plan 02-05 complete — pipeline/__init__.py and pipeline/converter.py created; convert_page() returns 2550x3300 RGB PIL Image with Lanczos normalisation; real test.pdf pages are 2478x3228 at 300 DPI (8.26x10.76 in scan); all 3 test_convert_page_* tests pass green
 
 ## Open Decisions
 
@@ -36,6 +37,7 @@
 - Confidence threshold default (60%) — validate against a real representative batch during Phase 4 calibration
 - Output filename/directory convention — confirm before Phase 6 UI build (affects open-output button target path)
 - ~~PyMuPDF fallback~~ **Resolved (Phase 1):** Poppler-only; app exits with clear error if Poppler is missing — no fallback
+- ~~Exact scanner page size~~ **Discovered (Phase 2 plan 02-05):** test.pdf pages are 2478x3228 at 300 DPI (8.26x10.76 in, not 8.5x11 in). convert_page() resizes ±10% deviations to exactly 2550x3300 via Lanczos; coordinate calibration in 02-07 must verify alignment on resized images.
 
 ## Notes
 
