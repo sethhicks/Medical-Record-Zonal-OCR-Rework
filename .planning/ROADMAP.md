@@ -44,7 +44,7 @@ Plans:
 - [x] 02-01-PLAN.md — Test scaffold: tests/test_phase2.py (15 stubs) + tests/conftest.py (Wave 0)
 - [x] 02-02-PLAN.md — Settings extension: add threshold_block_size=31 to config_loader._DEFAULTS (Wave 1)
 - [x] 02-03-PLAN.md — CMS-1500 coordinates: populate CMS1500_FIELDS (29) + CMS1500_TABLE_FIELDS (10) (Wave 1)
-- [ ] 02-04-PLAN.md — UB-04 coordinates: populate UB04_FIELDS (24) + UB04_TABLE_FIELDS (7) (Wave 1)
+- [x] 02-04-PLAN.md — UB-04 coordinates: populate UB04_FIELDS (24) + UB04_TABLE_FIELDS (7) (Wave 1)
 - [ ] 02-05-PLAN.md — PDF converter: pipeline/__init__.py + pipeline/converter.py (Wave 1)
 - [ ] 02-06-PLAN.md — Preprocessor: pipeline/preprocessor.py — scale correction, deskew, adaptive threshold (Wave 1)
 - [ ] 02-07-PLAN.md — Calibration script: pipeline/calibrate.py CLI with overlay rendering (Wave 2)

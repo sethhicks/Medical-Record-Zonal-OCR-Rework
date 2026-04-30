@@ -28,6 +28,7 @@
 - 2026-04-29: Phase 2 planned — 7 plans in 3 waves; Wave 0 (test scaffold), Wave 1 (settings, coords, converter, preprocessor), Wave 2 (calibration script)
 - 2026-04-30: Phase 2 plan 02-02 complete — threshold_block_size=31 added to config_loader._DEFAULTS; test_settings_threshold_block_size_default passes green
 - 2026-04-30: Phase 2 plan 02-03 complete — CMS1500_FIELDS (29 FieldDef) and CMS1500_TABLE_FIELDS (10 TableFieldDef, 6 rows each) populated in config/cms1500.py; both coordinate tests pass green
+- 2026-04-30: Phase 2 plan 02-04 complete — UB04_FIELDS (24 FieldDef) and UB04_TABLE_FIELDS (7 TableFieldDef, 22 rows each) populated in config/ub04.py; both coordinate tests pass green
 
 ## Open Decisions
 
