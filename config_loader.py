@@ -13,6 +13,7 @@ _DEFAULTS: dict = {
     "poppler_path": r"C:\Program Files\poppler\Library\bin",
     "confidence_threshold": 60,
     "output_dir": str(pathlib.Path.home() / "Desktop"),
+    "threshold_block_size": 31,
 }
 
 
