@@ -6,10 +6,6 @@ Exposes:
     preprocess_page(image, settings, debug=False) -> PIL.Image.Image
 """
 from .converter import convert_page
-
-try:
-    from .preprocessor import preprocess_page
-except ImportError:
-    preprocess_page = None  # type: ignore[assignment]  # populated by 02-06-PLAN
+from .preprocessor import preprocess_page
 
 __all__ = ["convert_page", "preprocess_page"]
