@@ -30,6 +30,7 @@
 - 2026-04-30: Phase 2 plan 02-03 complete — CMS1500_FIELDS (29 FieldDef) and CMS1500_TABLE_FIELDS (10 TableFieldDef, 6 rows each) populated in config/cms1500.py; both coordinate tests pass green
 - 2026-04-30: Phase 2 plan 02-04 complete — UB04_FIELDS (24 FieldDef) and UB04_TABLE_FIELDS (7 TableFieldDef, 22 rows each) populated in config/ub04.py; both coordinate tests pass green
 - 2026-04-30: Phase 2 plan 02-05 complete — pipeline/__init__.py and pipeline/converter.py created; convert_page() returns 2550x3300 RGB PIL Image with Lanczos normalisation; real test.pdf pages are 2478x3228 at 300 DPI (8.26x10.76 in scan); all 3 test_convert_page_* tests pass green
+- 2026-04-30: Phase 2 plan 02-06 complete — pipeline/preprocessor.py created with three-step OpenCV pipeline (scale correction, deskew, adaptive threshold); ValueError raised for skew >5°; block_size auto-corrects even values (T-2-03); all 5 preprocessor tests pass green; Phase 1 regression 8/8 green
 
 ## Open Decisions
 
