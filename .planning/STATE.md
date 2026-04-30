@@ -26,6 +26,7 @@
 - 2026-04-29: Phase 1 verified — 3/3 success criteria met; VERIFICATION.md committed
 - 2026-04-29: Phase 2 context gathered — pipeline/calibrate/coordinate decisions locked; resume: .planning/phases/02-image-pipeline-coordinate-calibration/02-CONTEXT.md
 - 2026-04-29: Phase 2 planned — 7 plans in 3 waves; Wave 0 (test scaffold), Wave 1 (settings, coords, converter, preprocessor), Wave 2 (calibration script)
+- 2026-04-30: Phase 2 plan 02-02 complete — threshold_block_size=31 added to config_loader._DEFAULTS; test_settings_threshold_block_size_default passes green
 
 ## Open Decisions
 

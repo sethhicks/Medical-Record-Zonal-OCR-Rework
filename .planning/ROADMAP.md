@@ -41,8 +41,8 @@ Plans:
 4. The scale-correction step computes `scale_x` and `scale_y` from the detected form bounding box and applies them to all field coordinates before any crop, confirmed by the calibration overlay remaining aligned on pages that differ slightly in physical scan size.
 **Plans:** 7 plans
 Plans:
-- [ ] 02-01-PLAN.md — Test scaffold: tests/test_phase2.py (15 stubs) + tests/conftest.py (Wave 0)
-- [ ] 02-02-PLAN.md — Settings extension: add threshold_block_size=31 to config_loader._DEFAULTS (Wave 1)
+- [x] 02-01-PLAN.md — Test scaffold: tests/test_phase2.py (15 stubs) + tests/conftest.py (Wave 0)
+- [x] 02-02-PLAN.md — Settings extension: add threshold_block_size=31 to config_loader._DEFAULTS (Wave 1)
 - [ ] 02-03-PLAN.md — CMS-1500 coordinates: populate CMS1500_FIELDS (29) + CMS1500_TABLE_FIELDS (10) (Wave 1)
 - [ ] 02-04-PLAN.md — UB-04 coordinates: populate UB04_FIELDS (24) + UB04_TABLE_FIELDS (7) (Wave 1)
 - [ ] 02-05-PLAN.md — PDF converter: pipeline/__init__.py + pipeline/converter.py (Wave 1)
