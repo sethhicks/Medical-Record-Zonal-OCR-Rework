@@ -10,7 +10,7 @@
 ### PROC — Processing Pipeline
 
 - [x] **PROC-01**: Application converts each PDF page to a PIL Image at exactly 300 DPI using pdf2image + Poppler
-- [ ] **PROC-02**: Application applies OpenCV preprocessing to each page image: bounding-box detection for scale correction, deskew via warp affine, and adaptive threshold (Gaussian, block size tunable) for grey-band removal in Box 24 regions
+- [x] **PROC-02**: Application applies OpenCV preprocessing to each page image: bounding-box detection for scale correction, deskew via warp affine, and adaptive threshold (Gaussian, block size tunable) for grey-band removal in Box 24 regions
 - [ ] **PROC-03**: Application auto-detects form type (CMS-1500 vs UB-04) for each page using multi-anchor detection (2-of-3 anchors must agree); pages where detection is uncertain are written as UNKNOWN rows rather than silently misclassified
 - [ ] **PROC-04**: Application processes multiple PDF files in a single run; all pages from all input files flow through the same pipeline
 
@@ -21,7 +21,7 @@
 - [ ] **EXTR-02**: Application extracts all billing-critical UB-04 fields using fixed pixel-region crops:
   - Box 1 (provider name/address), Box 3b (patient control number), Box 4 (type of bill), Box 5 (federal tax number), Box 6 (statement covers period from/through), Box 8 (patient name), Box 9 (patient address), Box 10 (birthdate), Box 11 (sex), Box 12 (admission date), Box 14 (type of admission), Box 17 (patient status), revenue lines 1–22 (rev code, description, HCPCS, service date, units, total charges, non-covered charges), Box 50 (payer name), Box 51 (health plan ID), Box 54 (prior payments), Box 55 (est. amount due), Box 56 (NPI), Box 58 (insured name), Box 60 (insured unique ID), Box 61 (group name), Box 63 (treatment auth codes), Box 64 (document control number), Box 66–75 (diagnosis + procedure codes), Box 76 (attending provider NPI + name)
 - [ ] **EXTR-03**: Application captures Tesseract confidence score for every extracted field; each `FieldResult` carries a numeric confidence value (0–100)
-- [ ] **EXTR-04**: A coordinate calibration script renders any PDF page with all configured field regions drawn as labelled rectangles, allowing visual verification of pixel coordinates before extractor code is deployed
+- [x] **EXTR-04**: A coordinate calibration script renders any PDF page with all configured field regions drawn as labelled rectangles, allowing visual verification of pixel coordinates before extractor code is deployed
 
 ### OUT — Output
 

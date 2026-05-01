@@ -5,7 +5,7 @@
 | # | Phase | Goal | Requirements | Status |
 |---|-------|------|--------------|--------|
 | 1 | Foundation & Environment | Project skeleton, dependency validation, and shared config are in place so all downstream phases build on a verified base | ENV-01, ENV-02 | Complete |
-| 2 | Image Pipeline & Coordinate Calibration | Every PDF page converts to a correctly-scaled, deskewed, thresholded image and every field region is visually verified against real scans before extractor code is written | PROC-01, PROC-02, EXTR-04 | Not Started |
+| 2 | Image Pipeline & Coordinate Calibration | Every PDF page converts to a correctly-scaled, deskewed, thresholded image and every field region is visually verified against real scans before extractor code is written | PROC-01, PROC-02, EXTR-04 | Complete |
 | 3 | Form Detection | Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched | PROC-03 | Not Started |
 | 4 | Field Extraction — CMS-1500 & UB-04 | All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result | EXTR-01, EXTR-02, EXTR-03 | Not Started |
 | 5 | Output & Excel Export | Extraction results are written to a correctly structured, formatted Excel workbook that billing staff can open and review immediately | OUT-01, OUT-02, OUT-03, OUT-04, OUT-05 | Not Started |
@@ -47,7 +47,7 @@ Plans:
 - [x] 02-04-PLAN.md — UB-04 coordinates: populate UB04_FIELDS (24) + UB04_TABLE_FIELDS (7) (Wave 1)
 - [x] 02-05-PLAN.md — PDF converter: pipeline/__init__.py + pipeline/converter.py (Wave 1)
 - [x] 02-06-PLAN.md — Preprocessor: pipeline/preprocessor.py — scale correction, deskew, adaptive threshold (Wave 1)
-- [ ] 02-07-PLAN.md — Calibration script: pipeline/calibrate.py CLI with overlay rendering (Wave 2)
+- [x] 02-07-PLAN.md — Calibration script: pipeline/calibrate.py CLI with overlay rendering (Wave 2)
 
 ### Phase 3: Form Detection
 **Goal:** Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched.
@@ -104,7 +104,7 @@ Plans:
 | Phase | Status | Completed |
 |-------|--------|-----------|
 | 1. Foundation & Environment | Complete | 2026-04-29 |
-| 2. Image Pipeline & Coordinate Calibration | Ready to execute | — |
+| 2. Image Pipeline & Coordinate Calibration | Complete | 2026-05-01 |
 | 3. Form Detection | Not Started | — |
 | 4. Field Extraction — CMS-1500 & UB-04 | Not Started | — |
 | 5. Output & Excel Export | Not Started | — |

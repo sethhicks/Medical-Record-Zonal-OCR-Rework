@@ -2,16 +2,16 @@
 
 ## Current Position
 - Milestone: v1.0
-- Current Phase: Phase 2 — Image Pipeline & Coordinate Calibration
-- Last Updated: 2026-04-29
+- Current Phase: Phase 3 — Form Detection
+- Last Updated: 2026-05-01
 
 ## Phase Status
 
 | # | Phase | Status |
 |---|-------|--------|
 | 1 | Foundation & Environment | Complete (4/4 plans) |
-| 2 | Image Pipeline & Coordinate Calibration | Ready to execute (7/7 plans) |
-| 3 | Form Detection | Not Started |
+| 2 | Image Pipeline & Coordinate Calibration | Complete (7/7 plans) |
+| 3 | Form Detection | Next |
 | 4 | Field Extraction — CMS-1500 & UB-04 | Not Started |
 | 5 | Output & Excel Export | Not Started |
 | 6 | Desktop UI & Batch Processing | Not Started |
@@ -31,6 +31,8 @@
 - 2026-04-30: Phase 2 plan 02-04 complete — UB04_FIELDS (24 FieldDef) and UB04_TABLE_FIELDS (7 TableFieldDef, 22 rows each) populated in config/ub04.py; both coordinate tests pass green
 - 2026-04-30: Phase 2 plan 02-05 complete — pipeline/__init__.py and pipeline/converter.py created; convert_page() returns 2550x3300 RGB PIL Image with Lanczos normalisation; real test.pdf pages are 2478x3228 at 300 DPI (8.26x10.76 in scan); all 3 test_convert_page_* tests pass green
 - 2026-04-30: Phase 2 plan 02-06 complete — pipeline/preprocessor.py created with three-step OpenCV pipeline (scale correction, deskew, adaptive threshold); ValueError raised for skew >5°; block_size auto-corrects even values (T-2-03); all 5 preprocessor tests pass green; Phase 1 regression 8/8 green
+- 2026-05-01: Phase 2 plan 02-07 complete — pipeline/calibrate.py CLI renders field overlays (green FieldDef, orange TableFieldDef rows, red labels); final 2 calibration tests pass; all 15 Phase 2 tests green
+- 2026-05-01: Phase 2 complete — 7/7 plans executed; 15/15 tests passing; human coordinate verification approved; advancing to Phase 3
 
 ## Open Decisions
 
