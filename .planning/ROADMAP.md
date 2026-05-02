@@ -58,7 +58,11 @@ Plans:
 2. Running the form detector against the 3 UB-04 pages in `test.pdf` returns `UB-04` for every page that contains the UB-04 signature strings ("NUBC", "UB-04 CMS-1450").
 3. A test page with all anchor text obscured (simulating a stamped or clipped scan that matches fewer than 2 anchors) is classified as `UNKNOWN` rather than assigned to either form type.
 4. Every page classified as `UNKNOWN` produces a result object that carries the `UNKNOWN` form type label so downstream stages can write it as an error row rather than silently skipping it.
-**Plans:** TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 03-01-PLAN.md — Test scaffold: tests/test_phase3.py with 8 skipped stubs (Wave 0)
+- [ ] 03-02-PLAN.md — Detector: pipeline/detector.py + 5 unit tests activated (Wave 1)
+- [ ] 03-03-PLAN.md — Wire: pipeline/__init__.py re-export + 3 integration tests activated (Wave 2)
 
 ### Phase 4: Field Extraction — CMS-1500 & UB-04
 **Goal:** All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result.
