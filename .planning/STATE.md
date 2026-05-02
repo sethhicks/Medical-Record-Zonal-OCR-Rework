@@ -11,7 +11,7 @@
 |---|-------|--------|
 | 1 | Foundation & Environment | Complete (4/4 plans) |
 | 2 | Image Pipeline & Coordinate Calibration | Complete (7/7 plans) |
-| 3 | Form Detection | Next |
+| 3 | Form Detection | Ready to execute (3/3 plans) |
 | 4 | Field Extraction — CMS-1500 & UB-04 | Not Started |
 | 5 | Output & Excel Export | Not Started |
 | 6 | Desktop UI & Batch Processing | Not Started |
@@ -33,6 +33,7 @@
 - 2026-04-30: Phase 2 plan 02-06 complete — pipeline/preprocessor.py created with three-step OpenCV pipeline (scale correction, deskew, adaptive threshold); ValueError raised for skew >5°; block_size auto-corrects even values (T-2-03); all 5 preprocessor tests pass green; Phase 1 regression 8/8 green
 - 2026-05-01: Phase 2 plan 02-07 complete — pipeline/calibrate.py CLI renders field overlays (green FieldDef, orange TableFieldDef rows, red labels); final 2 calibration tests pass; all 15 Phase 2 tests green
 - 2026-05-01: Phase 2 complete — 7/7 plans executed; 15/15 tests passing; human coordinate verification approved; advancing to Phase 3
+- 2026-05-01: Phase 3 planned — 3 plans in 3 waves; Wave 0 (test scaffold), Wave 1 (detector.py + unit tests), Wave 2 (pipeline export + integration tests)
 
 ## Open Decisions
 

@@ -573,17 +573,11 @@ No security-sensitive operations in this phase. Detection reads pixel data from 
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Third UB-04 page location**
-   - What we know: CLAUDE.md says "~3 UB-04" pages; analysis found 2 (pages 6 and 11)
-   - What's unclear: Whether a third UB-04 page exists in test.pdf and was missed by header analysis
-   - Recommendation: Tests should assert page 6 returns `'UB-04'`; leave "3 UB-04 pages" as approximate per CLAUDE.md
+1. **Third UB-04 page location** — RESOLVED: Tests assert only page 6 returns `'UB-04'`; CLAUDE.md count ("~3 UB-04") is treated as approximate. No blocking issue.
 
-2. **Page 11 (UB-04) always returns UNKNOWN**
-   - What we know: Page 11 is TUCSON MEDICAL CENTER (confirmed UB-04 by layout and revenue codes); no OCR-able NUBC text
-   - What's unclear: Whether this is a scan quality issue specific to test.pdf or a general limitation
-   - Recommendation: Accept UNKNOWN for page 11; document it as a known limitation in test comments
+2. **Page 11 (UB-04) always returns UNKNOWN** — RESOLVED: Accept UNKNOWN for page 11; documented as a known limitation in `test_ub04_smoke` docstring in tests/test_phase3.py. Implementation is correct per PROC-03 — uncertain pages written as UNKNOWN rows.
 
 ---
 

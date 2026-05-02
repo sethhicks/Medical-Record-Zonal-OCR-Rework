@@ -62,7 +62,13 @@ Plans:
 Plans:
 - [ ] 03-01-PLAN.md — Test scaffold: tests/test_phase3.py with 8 skipped stubs (Wave 0)
 - [ ] 03-02-PLAN.md — Detector: pipeline/detector.py + 5 unit tests activated (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 03-03-PLAN.md — Wire: pipeline/__init__.py re-export + 3 integration tests activated (Wave 2)
+
+Cross-cutting constraints:
+- `pytesseract.tesseract_cmd` set inside `detect_form_type` via `load_settings()` (all plans)
+- All pipeline imports deferred inside test function bodies (all plans)
 
 ### Phase 4: Field Extraction — CMS-1500 & UB-04
 **Goal:** All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result.
