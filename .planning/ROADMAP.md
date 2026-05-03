@@ -6,7 +6,7 @@
 |---|-------|------|--------------|--------|
 | 1 | Foundation & Environment | Project skeleton, dependency validation, and shared config are in place so all downstream phases build on a verified base | ENV-01, ENV-02 | Complete |
 | 2 | Image Pipeline & Coordinate Calibration | Every PDF page converts to a correctly-scaled, deskewed, thresholded image and every field region is visually verified against real scans before extractor code is written | PROC-01, PROC-02, EXTR-04 | Complete |
-| 3 | Form Detection | Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched | PROC-03 | Not Started |
+| 3 | Form Detection | Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched | PROC-03 | Complete |
 | 4 | Field Extraction — CMS-1500 & UB-04 | All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result | EXTR-01, EXTR-02, EXTR-03 | Not Started |
 | 5 | Output & Excel Export | Extraction results are written to a correctly structured, formatted Excel workbook that billing staff can open and review immediately | OUT-01, OUT-02, OUT-03, OUT-04, OUT-05 | Not Started |
 | 6 | Desktop UI & Batch Processing | Billing staff can select one or more PDFs, watch per-page progress, and open the output file from a desktop window — with errors surfaced rather than silently dropped | UI-01, UI-02, UI-03, UI-04, PROC-04 | Not Started |

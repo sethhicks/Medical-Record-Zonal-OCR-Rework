@@ -11,7 +11,7 @@
 
 - [x] **PROC-01**: Application converts each PDF page to a PIL Image at exactly 300 DPI using pdf2image + Poppler
 - [x] **PROC-02**: Application applies OpenCV preprocessing to each page image: bounding-box detection for scale correction, deskew via warp affine, and adaptive threshold (Gaussian, block size tunable) for grey-band removal in Box 24 regions
-- [ ] **PROC-03**: Application auto-detects form type (CMS-1500 vs UB-04) for each page using multi-anchor detection (2-of-3 anchors must agree); pages where detection is uncertain are written as UNKNOWN rows rather than silently misclassified
+- [x] **PROC-03**: Application auto-detects form type (CMS-1500 vs UB-04) for each page using multi-anchor detection (2-of-3 anchors must agree); pages where detection is uncertain are written as UNKNOWN rows rather than silently misclassified
 - [ ] **PROC-04**: Application processes multiple PDF files in a single run; all pages from all input files flow through the same pipeline
 
 ### EXTR — Field Extraction
