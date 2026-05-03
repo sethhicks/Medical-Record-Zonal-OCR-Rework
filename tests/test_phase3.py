@@ -22,49 +22,97 @@ _TEST_PDF = str(_ROOT / "test.pdf")
 # PROC-03: detect_form_type
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="Wave 1 — detector not implemented yet")
 def test_cms1500_detection_mock(monkeypatch):
     """2-of-3 CMS-1500 anchors via mock OCR returns 'CMS-1500'."""
-    pass
+    import pytesseract
+    from pipeline import detect_form_type
+    from PIL import Image
+
+    responses = iter([
+        'HEALTH INSURANCE CLAIM FORM',          # call 1: header PSM6 -> HEAL hit
+        'NUCC Instruction Manual FORM 1500',    # call 2: footer PSM6 -> NUC + FORM1500 hit
+        '',                                     # call 3: footer PSM11 -> no UB-04 anchors
+    ])
+    monkeypatch.setattr(pytesseract, 'image_to_string',
+                        lambda img, config='': next(responses))
+    img = Image.new('RGB', (2550, 3300), 255)
+    assert detect_form_type(img) == 'CMS-1500'
 
 
-@pytest.mark.skip(reason="Wave 1 — detector not implemented yet")
 def test_ub04_detection_mock(monkeypatch):
     """NUBC anchor found via mock OCR returns 'UB-04'."""
-    pass
+    import pytesseract
+    from pipeline import detect_form_type
+    from PIL import Image
+
+    responses = iter([
+        '',              # call 1: header PSM6 -> no HEAL
+        '',              # call 2: footer PSM6 -> no CMS anchors
+        'NUBC',          # call 3: footer PSM11 -> NUBC hit -> ub04_score=1, cms_score=0
+    ])
+    monkeypatch.setattr(pytesseract, 'image_to_string',
+                        lambda img, config='': next(responses))
+    img = Image.new('RGB', (2550, 3300), 255)
+    assert detect_form_type(img) == 'UB-04'
 
 
-@pytest.mark.skip(reason="Wave 1 — detector not implemented yet")
 def test_unknown_when_no_anchors(monkeypatch):
     """All OCR returns empty string — result is 'UNKNOWN'."""
-    pass
+    import pytesseract
+    from pipeline import detect_form_type
+    from PIL import Image
+
+    monkeypatch.setattr(pytesseract, 'image_to_string',
+                        lambda img, config='': '')
+    img = Image.new('RGB', (2550, 3300), 255)
+    assert detect_form_type(img) == 'UNKNOWN'
 
 
-@pytest.mark.skip(reason="Wave 1 — detector not implemented yet")
 def test_both_match_returns_unknown(monkeypatch):
     """cms_score>=2 AND ub04_score>=1 simultaneously -> 'UNKNOWN'."""
-    pass
+    import pytesseract
+    from pipeline import detect_form_type
+    from PIL import Image
+
+    responses = iter([
+        'HEALTH INSURANCE',                     # call 1: header -> HEAL hit (cms+1)
+        'NUCC Instruction FORM 1500 NUBC',      # call 2: footer PSM6 -> NUC+FORM1500 (cms+2), NUBC (ub04+1)
+        '',                                     # call 3: footer PSM11
+    ])
+    monkeypatch.setattr(pytesseract, 'image_to_string',
+                        lambda img, config='': next(responses))
+    img = Image.new('RGB', (2550, 3300), 255)
+    # cms_score=3, ub04_score=1 -> both match -> UNKNOWN
+    assert detect_form_type(img) == 'UNKNOWN'
 
 
-@pytest.mark.skip(reason="Wave 1 — detector not implemented yet")
 def test_unknown_result_is_string(monkeypatch):
     """detect_form_type always returns a str; 'UNKNOWN' is str."""
-    pass
+    import pytesseract
+    from pipeline import detect_form_type
+    from PIL import Image
+
+    monkeypatch.setattr(pytesseract, 'image_to_string',
+                        lambda img, config='': '')
+    img = Image.new('RGB', (2550, 3300), 255)
+    result = detect_form_type(img)
+    assert result == 'UNKNOWN'
+    assert isinstance(result, str)
 
 
-@pytest.mark.skip(reason="Wave 1 — detector not implemented yet")
+@pytest.mark.skip(reason="Wave 1 — pipeline __init__ export not updated yet")
 def test_import_from_pipeline():
     """detect_form_type is importable from the pipeline package."""
     pass
 
 
-@pytest.mark.skip(reason="Wave 1 — detector not implemented yet")
+@pytest.mark.skip(reason="Wave 1 — requires real Tesseract, activated in 03-03-PLAN")
 def test_cms1500_smoke(test_pdf_path):
     """Real test.pdf page 0 classifies as 'CMS-1500' (uses actual Tesseract, ~2s)."""
     pass
 
 
-@pytest.mark.skip(reason="Wave 1 — detector not implemented yet")
+@pytest.mark.skip(reason="Wave 1 — requires real Tesseract, activated in 03-03-PLAN")
 def test_ub04_smoke(test_pdf_path):
     """Real test.pdf page 6 classifies as 'UB-04' (uses actual Tesseract, ~2s)."""
     pass

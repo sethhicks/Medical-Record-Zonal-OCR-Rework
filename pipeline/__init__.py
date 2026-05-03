@@ -4,8 +4,10 @@
 Exposes:
     convert_page(pdf_path, page_num) -> PIL.Image.Image
     preprocess_page(image, settings, debug=False) -> PIL.Image.Image
+    detect_form_type(image) -> str
 """
 from .converter import convert_page
 from .preprocessor import preprocess_page
+from .detector import detect_form_type
 
-__all__ = ["convert_page", "preprocess_page"]
+__all__ = ["convert_page", "preprocess_page", "detect_form_type"]
