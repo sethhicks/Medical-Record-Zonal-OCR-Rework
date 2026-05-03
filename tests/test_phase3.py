@@ -100,19 +100,25 @@ def test_unknown_result_is_string(monkeypatch):
     assert isinstance(result, str)
 
 
-@pytest.mark.skip(reason="Wave 1 — pipeline __init__ export not updated yet")
 def test_import_from_pipeline():
-    """detect_form_type is importable from the pipeline package."""
-    pass
+    """detect_form_type is importable from the pipeline package (per D-08)."""
+    from pipeline import detect_form_type
+    assert callable(detect_form_type)
 
 
-@pytest.mark.skip(reason="Wave 1 — requires real Tesseract, activated in 03-03-PLAN")
 def test_cms1500_smoke(test_pdf_path):
     """Real test.pdf page 0 classifies as 'CMS-1500' (uses actual Tesseract, ~2s)."""
-    pass
+    from pipeline import convert_page, detect_form_type
+    image = convert_page(test_pdf_path, 0)
+    assert detect_form_type(image) == 'CMS-1500'
 
 
-@pytest.mark.skip(reason="Wave 1 — requires real Tesseract, activated in 03-03-PLAN")
 def test_ub04_smoke(test_pdf_path):
-    """Real test.pdf page 6 classifies as 'UB-04' (uses actual Tesseract, ~2s)."""
-    pass
+    """Real test.pdf page 6 classifies as 'UB-04' (uses actual Tesseract, ~2s).
+
+    Note: Page 11 (second UB-04) returns 'UNKNOWN' due to OCR-degraded NUBC text —
+    this is expected behavior per RESEARCH.md, not a bug.
+    """
+    from pipeline import convert_page, detect_form_type
+    image = convert_page(test_pdf_path, 6)
+    assert detect_form_type(image) == 'UB-04'
