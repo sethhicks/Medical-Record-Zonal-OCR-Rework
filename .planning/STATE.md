@@ -34,6 +34,8 @@
 - 2026-05-01: Phase 2 plan 02-07 complete — pipeline/calibrate.py CLI renders field overlays (green FieldDef, orange TableFieldDef rows, red labels); final 2 calibration tests pass; all 15 Phase 2 tests green
 - 2026-05-01: Phase 2 complete — 7/7 plans executed; 15/15 tests passing; human coordinate verification approved; advancing to Phase 3
 - 2026-05-01: Phase 3 planned — 3 plans in 3 waves; Wave 0 (test scaffold), Wave 1 (detector.py + unit tests), Wave 2 (pipeline export + integration tests)
+- 2026-05-03: Phase 3 plan 03-01 complete — tests/test_phase3.py test scaffold with 8 skipped stubs created
+- 2026-05-03: Phase 3 plan 03-02 complete — pipeline/detector.py created with detect_form_type() 3-call anchor OCR; 5 unit tests activated (mock-based); 28/28 tests green; Rule 3: detect_form_type added to pipeline/__init__.py exports
 
 ## Open Decisions
 

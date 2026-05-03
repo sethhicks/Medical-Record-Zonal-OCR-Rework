@@ -60,8 +60,8 @@ Plans:
 4. Every page classified as `UNKNOWN` produces a result object that carries the `UNKNOWN` form type label so downstream stages can write it as an error row rather than silently skipping it.
 **Plans:** 3 plans
 Plans:
-- [ ] 03-01-PLAN.md — Test scaffold: tests/test_phase3.py with 8 skipped stubs (Wave 0)
-- [ ] 03-02-PLAN.md — Detector: pipeline/detector.py + 5 unit tests activated (Wave 1)
+- [x] 03-01-PLAN.md — Test scaffold: tests/test_phase3.py with 8 skipped stubs (Wave 0)
+- [x] 03-02-PLAN.md — Detector: pipeline/detector.py + 5 unit tests activated (Wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 03-03-PLAN.md — Wire: pipeline/__init__.py re-export + 3 integration tests activated (Wave 2)
@@ -115,7 +115,7 @@ Cross-cutting constraints:
 |-------|--------|-----------|
 | 1. Foundation & Environment | Complete | 2026-04-29 |
 | 2. Image Pipeline & Coordinate Calibration | Complete | 2026-05-01 |
-| 3. Form Detection | Not Started | — |
+| 3. Form Detection | In Progress (2/3 plans) | — |
 | 4. Field Extraction — CMS-1500 & UB-04 | Not Started | — |
 | 5. Output & Excel Export | Not Started | — |
 | 6. Desktop UI & Batch Processing | Not Started | — |
