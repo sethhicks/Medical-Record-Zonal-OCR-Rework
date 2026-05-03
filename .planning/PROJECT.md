@@ -100,7 +100,7 @@ Billing-critical fields to extract:
 - [ ] User can select one or more PDF files via desktop file picker
 - [ ] App converts each PDF page to a 300 DPI image using pdf2image/PyMuPDF
 - [ ] App preprocesses each page image with OpenCV (deskew, denoise, threshold) before OCR
-- [ ] App auto-detects form type (CMS-1500 vs UB-04) for each page
+- [x] App auto-detects form type (CMS-1500 vs UB-04) for each page — Validated Phase 3: 3-call anchor OCR, score-based thresholds, real Tesseract smoke tests pass on test.pdf
 - [ ] App extracts all billing-critical CMS-1500 fields using fixed coordinate regions
 - [ ] App extracts all billing-critical UB-04 fields using fixed coordinate regions
 - [ ] App captures Tesseract confidence score per field
@@ -149,4 +149,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after initialization*
+*Last updated: 2026-05-03 — Phase 3 complete (form detection)*
