@@ -63,8 +63,8 @@ Plans:
 - [x] 03-01-PLAN.md — Test scaffold: tests/test_phase3.py with 8 skipped stubs (Wave 0)
 - [x] 03-02-PLAN.md — Detector: pipeline/detector.py + 5 unit tests activated (Wave 1)
 
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 03-03-PLAN.md — Wire: pipeline/__init__.py re-export + 3 integration tests activated (Wave 2)
+**Wave 2**
+- [x] 03-03-PLAN.md — Wire: pipeline/__init__.py re-export + 3 integration tests activated (Wave 2)
 
 Cross-cutting constraints:
 - `pytesseract.tesseract_cmd` set inside `detect_form_type` via `load_settings()` (all plans)
@@ -115,7 +115,7 @@ Cross-cutting constraints:
 |-------|--------|-----------|
 | 1. Foundation & Environment | Complete | 2026-04-29 |
 | 2. Image Pipeline & Coordinate Calibration | Complete | 2026-05-01 |
-| 3. Form Detection | In Progress (2/3 plans) | — |
+| 3. Form Detection | Complete | 2026-05-03 |
 | 4. Field Extraction — CMS-1500 & UB-04 | Not Started | — |
 | 5. Output & Excel Export | Not Started | — |
 | 6. Desktop UI & Batch Processing | Not Started | — |
