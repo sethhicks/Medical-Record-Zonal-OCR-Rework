@@ -138,34 +138,86 @@ def test_cms1500_all_results_have_confidence(monkeypatch):
 # EXTR-02: extract_ub04 — UB-04 field extraction
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_ub04_returns_list(monkeypatch):
-    """extract_ub04 returns a list."""
-    pass
+    """extract_ub04 returns a list (D-05)."""
+    import pytesseract
+    from pipeline.extractor_ub04 import extract_ub04
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_ub04(img, settings)
+    assert isinstance(result, list)
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_ub04_result_count(monkeypatch):
-    """extract_ub04 returns exactly 178 FieldResults (24 single + 154 table)."""
-    pass
+    """extract_ub04 returns exactly 178 FieldResults (24 single + 154 revenue-line) (EXTR-02)."""
+    import pytesseract
+    from pipeline.extractor_ub04 import extract_ub04
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_ub04(img, settings)
+    assert len(result) == 178
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_ub04_revenue_line_naming(monkeypatch):
-    """revenue line entries use _rl1.._rl22 suffix (D-07)."""
-    pass
+    """Revenue line entries use _rl1.._rl22 suffix pattern (D-07)."""
+    import pytesseract
+    from pipeline.extractor_ub04 import extract_ub04
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_ub04(img, settings)
+    result_names = {r.field_name for r in result}
+    for rl in range(1, 23):
+        assert f"ub04_rl_rev_code_rl{rl}" in result_names, f"Missing ub04_rl_rev_code_rl{rl}"
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_ub04_blank_rl_sentinel(monkeypatch):
-    """blank RL region returns FieldResult with confidence=-1.0 (D-11)."""
-    pass
+    """Blank RL region returns FieldResult with value='' and confidence=-1.0 (D-11)."""
+    import pytesseract
+    from pipeline.extractor_ub04 import extract_ub04
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_ub04(img, settings)
+    for r in result:
+        assert r.value == '', f"Expected empty value for {r.field_name}, got {r.value!r}"
+        assert r.confidence == -1.0, f"Expected -1.0 for {r.field_name}, got {r.confidence}"
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_ub04_all_results_have_confidence(monkeypatch):
-    """every UB-04 FieldResult has a numeric confidence attribute."""
-    pass
+    """Every UB-04 FieldResult has a numeric confidence attribute (EXTR-03)."""
+    import pytesseract
+    from pipeline.extractor_ub04 import extract_ub04
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_ub04(img, settings)
+    for r in result:
+        assert isinstance(r.confidence, float), (
+            f"{r.field_name}: confidence must be float, got {type(r.confidence).__name__}"
+        )
 
 
 # ---------------------------------------------------------------------------
