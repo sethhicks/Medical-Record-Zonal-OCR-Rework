@@ -65,7 +65,7 @@ Each task was committed atomically:
 
 1. **Task 1: Update box21a-l and box24_cpt whitelists in config/cms1500.py** - `5c606e9` (feat)
 
-**Plan metadata:** _(pending final docs commit)_
+**Plan metadata:** `ad85b49` (docs)
 
 ## Files Created/Modified
 
@@ -92,6 +92,13 @@ None — no external service configuration required.
 - config/cms1500.py is ready for extractor_cms1500.py to consume
 - Plan 04-03 (CMS-1500 extractor) can now read correct whitelist values for ICD-10 and CPT fields
 - The 17 skipped test stubs from 04-01 remain ready to be activated in Wave 1
+
+## Self-Check: PASSED
+
+- config/cms1500.py: FOUND
+- 04-02-SUMMARY.md: FOUND
+- Commit 5c606e9 (feat): FOUND
+- Commit ad85b49 (docs): FOUND
 
 ---
 *Phase: 04-field-extraction-cms-1500-ub-04*
