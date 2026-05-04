@@ -8,8 +8,8 @@ progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 14
-  percent: 70
+  completed_plans: 15
+  percent: 72
 ---
 
 # Project State — OCR Medical Billing Form Extractor
@@ -53,6 +53,7 @@ progress:
 - 2026-05-03: Phase 3 plan 03-02 complete — pipeline/detector.py created with detect_form_type() 3-call anchor OCR; 5 unit tests activated (mock-based); 28/28 tests green; Rule 3: detect_form_type added to pipeline/__init__.py exports
 - 2026-05-03: Phase 3 plan 03-03 complete — pipeline/__init__.py export verified; 3 remaining test stubs activated (test_import_from_pipeline, test_cms1500_smoke, test_ub04_smoke); 31/31 tests green (Phase 1: 8, Phase 2: 15, Phase 3: 8); Phase 3 complete
 - 2026-05-03: Phase 4 planned — 6 plans in 4 waves; Wave 0 (test scaffold), Wave 1 (config whitelist updates + CMS-1500 extractor + UB-04 extractor, parallel), Wave 2 (pipeline/__init__.py re-export), Wave 3 (empirical calibration sweep + integration tests, human checkpoint)
+- 2026-05-03: Phase 4 plan 04-01 complete — tests/test_phase4.py created with 17 @pytest.mark.skip stubs (13 Wave 1 unit + 4 Wave 2 integration); full suite: 31 passed, 17 skipped, 0 errors
 
 ## Open Decisions
 

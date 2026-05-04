@@ -82,7 +82,7 @@ Cross-cutting constraints:
 5. Box 24 service line extraction returns six discrete line result groups (SL1–SL6) even when some lines are blank on the form.
 **Plans:** 6 plans
 Plans:
-- [ ] 04-01-PLAN.md — Test scaffold: tests/test_phase4.py with 17 skipped stubs (Wave 0)
+- [x] 04-01-PLAN.md — Test scaffold: tests/test_phase4.py with 17 skipped stubs (Wave 0)
 
 **Wave 1** *(blocked on Wave 0 completion)*
 - [ ] 04-02-PLAN.md — Config updates: box21a–l and box24_cpt whitelists in config/cms1500.py (Wave 1)
@@ -133,6 +133,6 @@ Cross-cutting constraints:
 | 1. Foundation & Environment | Complete | 2026-04-29 |
 | 2. Image Pipeline & Coordinate Calibration | Complete | 2026-05-01 |
 | 3. Form Detection | Complete | 2026-05-03 |
-| 4. Field Extraction — CMS-1500 & UB-04 | Not Started | — |
+| 4. Field Extraction — CMS-1500 & UB-04 | In Progress (1/6 plans) | — |
 | 5. Output & Excel Export | Not Started | — |
 | 6. Desktop UI & Batch Processing | Not Started | — |
