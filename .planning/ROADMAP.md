@@ -80,7 +80,14 @@ Cross-cutting constraints:
 3. Every field result carries a numeric confidence value between 0 and 100; no field result is missing a confidence score.
 4. NPI and CPT fields use a digits-only character whitelist; ICD-10 fields use an alpha+digits+dot whitelist; the OCR output for these fields contains only characters from the respective whitelist.
 5. Box 24 service line extraction returns six discrete line result groups (SL1–SL6) even when some lines are blank on the form.
-**Plans:** TBD
+**Plans:** 6 plans
+Plans:
+- [ ] 04-01-PLAN.md — Test scaffold: tests/test_phase4.py with 17 skipped stubs (Wave 0)
+- [ ] 04-02-PLAN.md — Config updates: box21a–l and box24_cpt whitelists in config/cms1500.py (Wave 1)
+- [ ] 04-03-PLAN.md — CMS-1500 extractor: pipeline/extractor_cms1500.py + 6 unit tests activated (Wave 1)
+- [ ] 04-04-PLAN.md — UB-04 extractor: pipeline/extractor_ub04.py + 5 unit tests activated (Wave 1)
+- [ ] 04-05-PLAN.md — Wire: pipeline/__init__.py re-export + 2 import tests activated (Wave 2)
+- [ ] 04-06-PLAN.md — Integration calibration: sweep test.pdf, document rates, activate 4 integration tests (Wave 3)
 
 ### Phase 5: Output & Excel Export
 **Goal:** Extraction results are written to a correctly structured, formatted Excel workbook that billing staff can open and review immediately.
