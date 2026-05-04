@@ -7,7 +7,7 @@
 | 1 | Foundation & Environment | Project skeleton, dependency validation, and shared config are in place so all downstream phases build on a verified base | ENV-01, ENV-02 | Complete |
 | 2 | Image Pipeline & Coordinate Calibration | Every PDF page converts to a correctly-scaled, deskewed, thresholded image and every field region is visually verified against real scans before extractor code is written | PROC-01, PROC-02, EXTR-04 | Complete |
 | 3 | Form Detection | Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched | PROC-03 | Complete |
-| 4 | Field Extraction — CMS-1500 & UB-04 | All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result | EXTR-01, EXTR-02, EXTR-03 | Not Started |
+| 4 | Field Extraction — CMS-1500 & UB-04 | All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result | EXTR-01, EXTR-02, EXTR-03 | In Progress |
 | 5 | Output & Excel Export | Extraction results are written to a correctly structured, formatted Excel workbook that billing staff can open and review immediately | OUT-01, OUT-02, OUT-03, OUT-04, OUT-05 | Not Started |
 | 6 | Desktop UI & Batch Processing | Billing staff can select one or more PDFs, watch per-page progress, and open the output file from a desktop window — with errors surfaced rather than silently dropped | UI-01, UI-02, UI-03, UI-04, PROC-04 | Not Started |
 
@@ -86,8 +86,8 @@ Plans:
 
 **Wave 1** *(blocked on Wave 0 completion)*
 - [x] 04-02-PLAN.md — Config updates: box21a–l and box24_cpt whitelists in config/cms1500.py (Wave 1)
-- [ ] 04-03-PLAN.md — CMS-1500 extractor: pipeline/extractor_cms1500.py + 6 unit tests activated (Wave 1, depends on 04-02)
-- [ ] 04-04-PLAN.md — UB-04 extractor: pipeline/extractor_ub04.py + 5 unit tests activated (Wave 1)
+- [x] 04-03-PLAN.md — CMS-1500 extractor: pipeline/extractor_cms1500.py + 6 unit tests activated (Wave 1, depends on 04-02)
+- [x] 04-04-PLAN.md — UB-04 extractor: pipeline/extractor_ub04.py + 5 unit tests activated (Wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 04-05-PLAN.md — Wire: pipeline/__init__.py re-export + 2 import tests activated (Wave 2)
@@ -133,6 +133,6 @@ Cross-cutting constraints:
 | 1. Foundation & Environment | Complete | 2026-04-29 |
 | 2. Image Pipeline & Coordinate Calibration | Complete | 2026-05-01 |
 | 3. Form Detection | Complete | 2026-05-03 |
-| 4. Field Extraction — CMS-1500 & UB-04 | In Progress (2/6 plans) | — |
+| 4. Field Extraction — CMS-1500 & UB-04 | In Progress (4/6 plans) | — |
 | 5. Output & Excel Export | Not Started | — |
 | 6. Desktop UI & Batch Processing | Not Started | — |
