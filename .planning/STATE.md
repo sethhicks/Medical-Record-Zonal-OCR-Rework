@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-03T06:35:39.915Z"
+last_updated: "2026-05-03T12:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 14
+  total_plans: 20
   completed_plans: 14
-  percent: 100
+  percent: 70
 ---
 
 # Project State — OCR Medical Billing Form Extractor
@@ -27,7 +27,7 @@ progress:
 | 1 | Foundation & Environment | Complete (4/4 plans) |
 | 2 | Image Pipeline & Coordinate Calibration | Complete (7/7 plans) |
 | 3 | Form Detection | Complete (3/3 plans) |
-| 4 | Field Extraction — CMS-1500 & UB-04 | Not Started |
+| 4 | Field Extraction — CMS-1500 & UB-04 | Ready to execute (6/6 plans) |
 | 5 | Output & Excel Export | Not Started |
 | 6 | Desktop UI & Batch Processing | Not Started |
 
@@ -52,11 +52,12 @@ progress:
 - 2026-05-03: Phase 3 plan 03-01 complete — tests/test_phase3.py test scaffold with 8 skipped stubs created
 - 2026-05-03: Phase 3 plan 03-02 complete — pipeline/detector.py created with detect_form_type() 3-call anchor OCR; 5 unit tests activated (mock-based); 28/28 tests green; Rule 3: detect_form_type added to pipeline/__init__.py exports
 - 2026-05-03: Phase 3 plan 03-03 complete — pipeline/__init__.py export verified; 3 remaining test stubs activated (test_import_from_pipeline, test_cms1500_smoke, test_ub04_smoke); 31/31 tests green (Phase 1: 8, Phase 2: 15, Phase 3: 8); Phase 3 complete
+- 2026-05-03: Phase 4 planned — 6 plans in 4 waves; Wave 0 (test scaffold), Wave 1 (config whitelist updates + CMS-1500 extractor + UB-04 extractor, parallel), Wave 2 (pipeline/__init__.py re-export), Wave 3 (empirical calibration sweep + integration tests, human checkpoint)
 
 ## Open Decisions
 
-- ICD-10 dot format (F32.9 vs F329) — confirm with user before Phase 4; affects character whitelist and any downstream consumer of the Excel output
-- Confidence threshold default (60%) — validate against a real representative batch during Phase 4 calibration
+- ~~ICD-10 dot format (F32.9 vs F329)~~ **Resolved (Phase 4 discuss):** Retain dot — store as `F32.9`. ICD-10 whitelist: `"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789. "`. box21a-l whitelist update in 04-02.
+- Confidence threshold default (60%) — validate against a real representative batch during Phase 4 calibration (04-06 empirical sweep will document actual non-empty rates and calibrated threshold)
 - Output filename/directory convention — confirm before Phase 6 UI build (affects open-output button target path)
 - ~~PyMuPDF fallback~~ **Resolved (Phase 1):** Poppler-only; app exits with clear error if Poppler is missing — no fallback
 - ~~Exact scanner page size~~ **Discovered (Phase 2 plan 02-05):** test.pdf pages are 2478x3228 at 300 DPI (8.26x10.76 in, not 8.5x11 in). convert_page() resizes ±10% deviations to exactly 2550x3300 via Lanczos; coordinate calibration in 02-07 must verify alignment on resized images.

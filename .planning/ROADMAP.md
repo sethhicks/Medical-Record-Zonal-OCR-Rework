@@ -83,11 +83,21 @@ Cross-cutting constraints:
 **Plans:** 6 plans
 Plans:
 - [ ] 04-01-PLAN.md — Test scaffold: tests/test_phase4.py with 17 skipped stubs (Wave 0)
+
+**Wave 1** *(blocked on Wave 0 completion)*
 - [ ] 04-02-PLAN.md — Config updates: box21a–l and box24_cpt whitelists in config/cms1500.py (Wave 1)
-- [ ] 04-03-PLAN.md — CMS-1500 extractor: pipeline/extractor_cms1500.py + 6 unit tests activated (Wave 1)
+- [ ] 04-03-PLAN.md — CMS-1500 extractor: pipeline/extractor_cms1500.py + 6 unit tests activated (Wave 1, depends on 04-02)
 - [ ] 04-04-PLAN.md — UB-04 extractor: pipeline/extractor_ub04.py + 5 unit tests activated (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 04-05-PLAN.md — Wire: pipeline/__init__.py re-export + 2 import tests activated (Wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion — human checkpoint)*
 - [ ] 04-06-PLAN.md — Integration calibration: sweep test.pdf, document rates, activate 4 integration tests (Wave 3)
+
+Cross-cutting constraints:
+- `pytesseract.pytesseract.tesseract_cmd = settings['tesseract_cmd']` set at start of each extractor function (all OCR plans)
+- config whitelist update (04-02) must complete before CMS-1500 extractor (04-03) is written
 
 ### Phase 5: Output & Excel Export
 **Goal:** Extraction results are written to a correctly structured, formatted Excel workbook that billing staff can open and review immediately.
