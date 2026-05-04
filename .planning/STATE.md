@@ -59,6 +59,7 @@ progress:
 - 2026-05-04: Phase 4 plan 04-04 complete — pipeline/extractor_ub04.py created; extract_ub04 returns 178 FieldResults (24 single + 154 revenue-line cells, _rl{i+1} naming); 5 UB-04 unit tests activated; 42 passed, 6 skipped
 - 2026-05-04: Phase 4 plan 04-05 complete — pipeline/__init__.py re-exports extract_ub04 (D-09); __all__ expanded to 5-name multiline list; 2 import tests activated; 5 UB-04 unit tests updated to canonical 'from pipeline import extract_ub04'; 44 passed, 4 skipped
 - 2026-05-04: Phase 4 plan 04-06 Task 1 complete — calibration sweep of all 30 test.pdf pages; best CMS-1500: page 15 at 15.7% (14/89); best UB-04: page 6 at 15.7% (28/178); CMS_THRESHOLD=0.107 UB04_THRESHOLD=0.107; Phase 4 Calibration Results documented in STATE.md; checkpoint pending human review
+- 2026-05-04: Phase 4 PAUSED at 04-06 checkpoint — user selected coordinate-retuning; 5/6 plans complete (04-01 through 04-05 done, 04-06 Task 3 pending); 44 passed, 4 skipped; coordinate re-tuning of config/cms1500.py and config/ub04.py required before activating integration tests
 
 ## Open Decisions
 
