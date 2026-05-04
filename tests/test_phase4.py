@@ -31,40 +31,107 @@ _TEST_PDF = str(_ROOT / "test.pdf")
 # EXTR-01: extract_cms1500 — CMS-1500 field extraction
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_cms1500_returns_list(monkeypatch):
-    """extract_cms1500 returns a list."""
-    pass
+    """extract_cms1500 returns a list (D-05)."""
+    import pytesseract
+    from pipeline import extract_cms1500
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_cms1500(img, settings)
+    assert isinstance(result, list)
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_cms1500_result_count(monkeypatch):
-    """extract_cms1500 returns exactly 89 FieldResults (29 single + 60 table)."""
-    pass
+    """extract_cms1500 returns exactly 89 FieldResults (29 single + 60 table) (EXTR-01)."""
+    import pytesseract
+    from pipeline import extract_cms1500
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_cms1500(img, settings)
+    assert len(result) == 89
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_cms1500_single_field_names(monkeypatch):
-    """all 29 single-field names are present in the result."""
-    pass
+    """All 29 single-field names from CMS1500_FIELDS appear in the result (EXTR-01)."""
+    import pytesseract
+    from pipeline import extract_cms1500
+    from config.cms1500 import CMS1500_FIELDS
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_cms1500(img, settings)
+    result_names = {r.field_name for r in result}
+    expected_singles = {fd.name for fd in CMS1500_FIELDS}
+    assert expected_singles.issubset(result_names)
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_cms1500_service_line_naming(monkeypatch):
-    """Box 24 table entries use _sl1.._sl6 suffix (D-06)."""
-    pass
+    """Box 24 table entries use _sl1.._sl6 suffix pattern (D-06)."""
+    import pytesseract
+    from pipeline import extract_cms1500
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_cms1500(img, settings)
+    result_names = {r.field_name for r in result}
+    for sl in range(1, 7):
+        assert f"box24_date_from_sl{sl}" in result_names, f"Missing box24_date_from_sl{sl}"
+        assert f"box24_cpt_sl{sl}" in result_names, f"Missing box24_cpt_sl{sl}"
+        assert f"box24_rendering_npi_sl{sl}" in result_names, f"Missing box24_rendering_npi_sl{sl}"
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_extract_cms1500_blank_row_sentinel(monkeypatch):
-    """blank region returns FieldResult with confidence=-1.0 (D-11)."""
-    pass
+    """Blank region returns FieldResult with value='' and confidence=-1.0 (D-11)."""
+    import pytesseract
+    from pipeline import extract_cms1500
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_cms1500(img, settings)
+    # All regions on an all-white image should return the blank sentinel
+    for r in result:
+        assert r.value == '', f"Expected empty value for {r.field_name}, got {r.value!r}"
+        assert r.confidence == -1.0, f"Expected -1.0 for {r.field_name}, got {r.confidence}"
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_cms1500_all_results_have_confidence(monkeypatch):
-    """every CMS-1500 FieldResult has a numeric confidence attribute."""
-    pass
+    """Every CMS-1500 FieldResult has a numeric confidence attribute (EXTR-03)."""
+    import pytesseract
+    from pipeline import extract_cms1500
+    from PIL import Image
+
+    empty_data = {'text': [], 'conf': []}
+    monkeypatch.setattr(pytesseract, 'image_to_data',
+                        lambda img, config='', output_type=None: empty_data)
+    img = Image.new('RGB', (2550, 3300), 255)
+    settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
+    result = extract_cms1500(img, settings)
+    for r in result:
+        assert isinstance(r.confidence, float), (
+            f"{r.field_name}: confidence must be float, got {type(r.confidence).__name__}"
+        )
 
 
 # ---------------------------------------------------------------------------
