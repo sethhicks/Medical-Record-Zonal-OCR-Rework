@@ -141,7 +141,7 @@ def test_cms1500_all_results_have_confidence(monkeypatch):
 def test_extract_ub04_returns_list(monkeypatch):
     """extract_ub04 returns a list (D-05)."""
     import pytesseract
-    from pipeline.extractor_ub04 import extract_ub04
+    from pipeline import extract_ub04
     from PIL import Image
 
     empty_data = {'text': [], 'conf': []}
@@ -156,7 +156,7 @@ def test_extract_ub04_returns_list(monkeypatch):
 def test_extract_ub04_result_count(monkeypatch):
     """extract_ub04 returns exactly 178 FieldResults (24 single + 154 revenue-line) (EXTR-02)."""
     import pytesseract
-    from pipeline.extractor_ub04 import extract_ub04
+    from pipeline import extract_ub04
     from PIL import Image
 
     empty_data = {'text': [], 'conf': []}
@@ -171,7 +171,7 @@ def test_extract_ub04_result_count(monkeypatch):
 def test_extract_ub04_revenue_line_naming(monkeypatch):
     """Revenue line entries use _rl1.._rl22 suffix pattern (D-07)."""
     import pytesseract
-    from pipeline.extractor_ub04 import extract_ub04
+    from pipeline import extract_ub04
     from PIL import Image
 
     empty_data = {'text': [], 'conf': []}
@@ -188,7 +188,7 @@ def test_extract_ub04_revenue_line_naming(monkeypatch):
 def test_extract_ub04_blank_rl_sentinel(monkeypatch):
     """Blank RL region returns FieldResult with value='' and confidence=-1.0 (D-11)."""
     import pytesseract
-    from pipeline.extractor_ub04 import extract_ub04
+    from pipeline import extract_ub04
     from PIL import Image
 
     empty_data = {'text': [], 'conf': []}
@@ -205,7 +205,7 @@ def test_extract_ub04_blank_rl_sentinel(monkeypatch):
 def test_ub04_all_results_have_confidence(monkeypatch):
     """Every UB-04 FieldResult has a numeric confidence attribute (EXTR-03)."""
     import pytesseract
-    from pipeline.extractor_ub04 import extract_ub04
+    from pipeline import extract_ub04
     from PIL import Image
 
     empty_data = {'text': [], 'conf': []}
@@ -224,16 +224,16 @@ def test_ub04_all_results_have_confidence(monkeypatch):
 # EXTR-01 + EXTR-02: pipeline import verification (D-09)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_import_extract_cms1500_from_pipeline():
-    """extract_cms1500 importable from pipeline (D-09)."""
-    pass
+    """extract_cms1500 is importable from the pipeline package (D-09)."""
+    from pipeline import extract_cms1500
+    assert callable(extract_cms1500)
 
 
-@pytest.mark.skip(reason="stub — implemented by Wave 1")
 def test_import_extract_ub04_from_pipeline():
-    """extract_ub04 importable from pipeline (D-09)."""
-    pass
+    """extract_ub04 is importable from the pipeline package (D-09)."""
+    from pipeline import extract_ub04
+    assert callable(extract_ub04)
 
 
 # ---------------------------------------------------------------------------
