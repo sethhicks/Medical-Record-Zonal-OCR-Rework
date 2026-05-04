@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-05-04T13:12:00.000Z"
+status: in_progress
+last_updated: "2026-05-04T13:44:53Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 17
-  percent: 83
+  completed_plans: 18
+  percent: 88
 ---
 
 # Project State — OCR Medical Billing Form Extractor
@@ -27,7 +27,7 @@ progress:
 | 1 | Foundation & Environment | Complete (4/4 plans) |
 | 2 | Image Pipeline & Coordinate Calibration | Complete (7/7 plans) |
 | 3 | Form Detection | Complete (3/3 plans) |
-| 4 | Field Extraction — CMS-1500 & UB-04 | In Progress (4/6 plans) |
+| 4 | Field Extraction — CMS-1500 & UB-04 | In Progress (5/6 plans) |
 | 5 | Output & Excel Export | Not Started |
 | 6 | Desktop UI & Batch Processing | Not Started |
 
@@ -57,6 +57,7 @@ progress:
 - 2026-05-04: Phase 4 plan 04-02 complete — config/cms1500.py updated: 12 box21x_diag whitelists -> ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789. (D-02), box24_cpt whitelist -> 0123456789- (D-03); 31 passed, 17 skipped
 - 2026-05-04: Phase 4 plan 04-03 complete — pipeline/extractor_cms1500.py created; extract_cms1500 returns 89 FieldResults (29 single + 60 service-line cells); 6 CMS-1500 unit tests activated; 37 passed, 11 skipped
 - 2026-05-04: Phase 4 plan 04-04 complete — pipeline/extractor_ub04.py created; extract_ub04 returns 178 FieldResults (24 single + 154 revenue-line cells, _rl{i+1} naming); 5 UB-04 unit tests activated; 42 passed, 6 skipped
+- 2026-05-04: Phase 4 plan 04-05 complete — pipeline/__init__.py re-exports extract_ub04 (D-09); __all__ expanded to 5-name multiline list; 2 import tests activated; 5 UB-04 unit tests updated to canonical 'from pipeline import extract_ub04'; 44 passed, 4 skipped
 
 ## Open Decisions
 
