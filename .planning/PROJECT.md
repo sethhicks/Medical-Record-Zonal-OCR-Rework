@@ -101,12 +101,12 @@ Billing-critical fields to extract:
 - [ ] App converts each PDF page to a 300 DPI image using pdf2image/PyMuPDF
 - [ ] App preprocesses each page image with OpenCV (deskew, denoise, threshold) before OCR
 - [x] App auto-detects form type (CMS-1500 vs UB-04) for each page — Validated Phase 3: 3-call anchor OCR, score-based thresholds, real Tesseract smoke tests pass on test.pdf
-- [ ] App extracts all billing-critical CMS-1500 fields using fixed coordinate regions
-- [ ] App extracts all billing-critical UB-04 fields using fixed coordinate regions
-- [ ] App captures Tesseract confidence score per field
-- [ ] App exports results to Excel with separate CMS-1500 and UB-04 sheets
-- [ ] Each physical page maps to one Excel row
-- [ ] Cells with OCR confidence below threshold are highlighted yellow
+- [x] App extracts all billing-critical CMS-1500 fields using fixed coordinate regions — Validated Phase 4: 89 FieldResults per page (29 single + 60 service-line cells)
+- [x] App extracts all billing-critical UB-04 fields using fixed coordinate regions — Validated Phase 4: 178 FieldResults per page (24 single + 154 revenue-line cells)
+- [x] App captures Tesseract confidence score per field — Validated Phase 4: confidence float on every FieldResult, -1.0 sentinel when no text found
+- [x] App exports results to Excel with separate CMS-1500 and UB-04 sheets — Validated Phase 5: write_workbook() produces two-sheet .xlsx at output_dir/extracted_results.xlsx
+- [x] Each physical page maps to one Excel row — Validated Phase 5: one row per page in cms_pages/ub_pages input lists
+- [x] Cells with OCR confidence below threshold are highlighted yellow — Validated Phase 5: PatternFill(fgColor="FFFF00") applied for confidence < threshold or == -1.0
 - [ ] User can see processing progress (per-page progress bar)
 - [ ] User can open the output Excel file directly from the app on completion
 - [ ] App handles multi-page CMS-1500 claims (groups by claim number column)
@@ -149,4 +149,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-03 — Phase 3 complete (form detection)*
+*Last updated: 2026-05-06 — Phase 5 complete (Excel export); Phases 1–5 done; Phase 6 (Desktop UI) remaining*
