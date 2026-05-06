@@ -1,0 +1,245 @@
+# tests/test_phase5.py
+"""Phase 5 tests — OUT-01 through OUT-05 (Excel export writer).
+
+Skip markers are removed by Wave 1/2 plans as each feature is implemented:
+  - test_write_workbook_returns_str           -> removed by 05-02-PLAN
+  - test_output_file_created                  -> removed by 05-02-PLAN
+  - test_two_sheets_named_correctly           -> removed by 05-02-PLAN
+  - test_cms1500_column_count                 -> removed by 05-02-PLAN
+  - test_ub04_column_count                    -> removed by 05-02-PLAN
+  - test_cms1500_header_row_frozen            -> removed by 05-02-PLAN
+  - test_yellow_fill_below_threshold          -> removed by 05-02-PLAN
+  - test_no_fill_above_threshold              -> removed by 05-02-PLAN
+  - test_import_write_workbook_from_pipeline  -> removed by 05-03-PLAN
+  - test_text_format_npi_column               -> removed by 05-03-PLAN
+  - test_text_format_date_column              -> removed by 05-03-PLAN
+  - test_cms1500_one_row_per_page             -> removed by 05-03-PLAN
+"""
+import pytest
+from pathlib import Path
+
+_ROOT = Path(__file__).parent.parent
+
+
+def _make_results(field_names, value="", confidence=95.0):
+    """Build a list of FieldResult objects for test setup.
+
+    Args:
+        field_names: iterable of field name strings
+        value: OCR text value to assign to each result (default "")
+        confidence: confidence score to assign (default 95.0)
+
+    Returns:
+        list[FieldResult]
+    """
+    from models.field_result import FieldResult
+    return [FieldResult(field_name=name, value=value, confidence=confidence)
+            for name in field_names]
+
+
+# ---------------------------------------------------------------------------
+# OUT-01 + OUT-02 + OUT-03: write_workbook — writer structure and file output
+# Unit stubs (activated by 05-02-PLAN)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
+def test_write_workbook_returns_str(tmp_path):
+    """write_workbook returns a str (file path to created workbook) (OUT-01)."""
+    from pipeline import write_workbook
+    result = write_workbook(
+        cms_pages=[[]],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    assert isinstance(result, str)
+
+
+@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
+def test_output_file_created(tmp_path):
+    """write_workbook creates the output .xlsx file on disk (OUT-01)."""
+    from pipeline import write_workbook
+    result = write_workbook(
+        cms_pages=[[]],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    assert Path(result).exists()
+
+
+@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
+def test_two_sheets_named_correctly(tmp_path):
+    """Workbook contains exactly two sheets: 'CMS-1500' and 'UB-04' (OUT-02)."""
+    import openpyxl
+    from pipeline import write_workbook
+    result = write_workbook(
+        cms_pages=[[]],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    assert wb.sheetnames == ["CMS-1500", "UB-04"]
+
+
+@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
+def test_cms1500_column_count(tmp_path):
+    """CMS-1500 sheet has exactly 89 columns (one per FieldResult) (OUT-02)."""
+    import openpyxl
+    from pipeline import write_workbook
+    from config.cms1500 import CMS1500_FIELDS, CMS1500_TABLE_FIELDS
+    field_names = [fd.name for fd in CMS1500_FIELDS]
+    for tfd in CMS1500_TABLE_FIELDS:
+        for row in range(1, tfd.rows + 1):
+            field_names.append(f"{tfd.name}_sl{row}")
+    results = _make_results(field_names)
+    result = write_workbook(
+        cms_pages=[results],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    ws = wb["CMS-1500"]
+    assert ws.max_column == 89
+
+
+@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
+def test_ub04_column_count(tmp_path):
+    """UB-04 sheet has exactly 178 columns (one per FieldResult) (OUT-02)."""
+    import openpyxl
+    from pipeline import write_workbook
+    from config.ub04 import UB04_FIELDS, UB04_TABLE_FIELDS
+    field_names = [fd.name for fd in UB04_FIELDS]
+    for tfd in UB04_TABLE_FIELDS:
+        for row in range(1, tfd.rows + 1):
+            field_names.append(f"{tfd.name}_rl{row}")
+    results = _make_results(field_names)
+    result = write_workbook(
+        cms_pages=[[]],
+        ub_pages=[results],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    ws = wb["UB-04"]
+    assert ws.max_column == 178
+
+
+@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
+def test_cms1500_header_row_frozen(tmp_path):
+    """CMS-1500 sheet header row is frozen (freeze_panes == 'A2') (OUT-03)."""
+    import openpyxl
+    from pipeline import write_workbook
+    result = write_workbook(
+        cms_pages=[[]],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    ws = wb["CMS-1500"]
+    assert ws.freeze_panes == "A2"
+
+
+@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
+def test_yellow_fill_below_threshold(tmp_path):
+    """Cell for FieldResult with confidence below threshold is filled yellow (OUT-04)."""
+    import openpyxl
+    from pipeline import write_workbook
+    results = _make_results(["box1_insurance_type"], value="X", confidence=10.0)
+    result = write_workbook(
+        cms_pages=[results],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    ws = wb["CMS-1500"]
+    # Find the data cell in row 2 for the field column
+    header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
+    col_idx = header_row.index("box1_insurance_type") + 1
+    cell = ws.cell(2, col_idx)
+    assert cell.fill.fgColor.rgb == "FFFF00"
+
+
+@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
+def test_no_fill_above_threshold(tmp_path):
+    """Cell for FieldResult with confidence above threshold has no yellow fill (OUT-04)."""
+    import openpyxl
+    from pipeline import write_workbook
+    results = _make_results(["box1_insurance_type"], value="X", confidence=90.0)
+    result = write_workbook(
+        cms_pages=[results],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    ws = wb["CMS-1500"]
+    header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
+    col_idx = header_row.index("box1_insurance_type") + 1
+    cell = ws.cell(2, col_idx)
+    # Cell should not be yellow-filled
+    fill = cell.fill
+    assert fill is None or fill.fill_type == "none" or fill.fgColor.rgb != "FFFF00"
+
+
+# ---------------------------------------------------------------------------
+# OUT-01 + OUT-05: pipeline import and text formatting
+# Integration stubs (activated by 05-03-PLAN)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.skip(reason="stub — activated by 05-03-PLAN")
+def test_import_write_workbook_from_pipeline():
+    """write_workbook is importable from the pipeline package (OUT-01)."""
+    from pipeline import write_workbook
+    assert callable(write_workbook)
+
+
+@pytest.mark.skip(reason="stub — activated by 05-03-PLAN")
+def test_text_format_npi_column(tmp_path):
+    """NPI column cells use text format '@' to preserve leading zeros (OUT-05)."""
+    import openpyxl
+    from pipeline import write_workbook
+    results = _make_results(["box17b_referring_npi"], value="0123456789", confidence=95.0)
+    result = write_workbook(
+        cms_pages=[results],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    ws = wb["CMS-1500"]
+    header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
+    col_idx = header_row.index("box17b_referring_npi") + 1
+    cell = ws.cell(2, col_idx)
+    assert cell.number_format == "@"
+
+
+@pytest.mark.skip(reason="stub — activated by 05-03-PLAN")
+def test_text_format_date_column(tmp_path):
+    """Date column cells use text format '@' to preserve date strings as-is (OUT-05)."""
+    import openpyxl
+    from pipeline import write_workbook
+    results = _make_results(["box24_date_from_sl1"], value="01/01/2024", confidence=95.0)
+    result = write_workbook(
+        cms_pages=[results],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    ws = wb["CMS-1500"]
+    header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
+    col_idx = header_row.index("box24_date_from_sl1") + 1
+    cell = ws.cell(2, col_idx)
+    assert cell.number_format == "@"
+
+
+@pytest.mark.skip(reason="stub — activated by 05-03-PLAN")
+def test_cms1500_one_row_per_page(tmp_path):
+    """CMS-1500 sheet has one row per page (header + N data rows for N pages) (OUT-02)."""
+    import openpyxl
+    from pipeline import write_workbook
+    page1 = _make_results(["box1_insurance_type"], value="X", confidence=90.0)
+    page2 = _make_results(["box1_insurance_type"], value="Y", confidence=90.0)
+    result = write_workbook(
+        cms_pages=[page1, page2],
+        ub_pages=[[]],
+        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
+    )
+    wb = openpyxl.load_workbook(result)
+    ws = wb["CMS-1500"]
+    assert ws.max_row == 3  # header row + 2 data rows
