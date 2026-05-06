@@ -1,19 +1,19 @@
 # tests/test_phase5.py
 """Phase 5 tests — OUT-01 through OUT-05 (Excel export writer).
 
-Skip markers are removed by Wave 1/2 plans as each feature is implemented:
-  - test_write_workbook_returns_str           -> removed by 05-02-PLAN
-  - test_output_file_created                  -> removed by 05-02-PLAN
-  - test_two_sheets_named_correctly           -> removed by 05-02-PLAN
-  - test_cms1500_column_count                 -> removed by 05-02-PLAN
-  - test_ub04_column_count                    -> removed by 05-02-PLAN
-  - test_cms1500_header_row_frozen            -> removed by 05-02-PLAN
-  - test_yellow_fill_below_threshold          -> removed by 05-02-PLAN
-  - test_no_fill_above_threshold              -> removed by 05-02-PLAN
-  - test_import_write_workbook_from_pipeline  -> removed by 05-03-PLAN
-  - test_text_format_npi_column               -> removed by 05-03-PLAN
-  - test_text_format_date_column              -> removed by 05-03-PLAN
-  - test_cms1500_one_row_per_page             -> removed by 05-03-PLAN
+All 12 stubs activated:
+  - test_write_workbook_returns_str           -> activated by 05-02-PLAN
+  - test_output_file_created                  -> activated by 05-02-PLAN
+  - test_two_sheets_named_correctly           -> activated by 05-02-PLAN
+  - test_cms1500_column_count                 -> activated by 05-02-PLAN
+  - test_ub04_column_count                    -> activated by 05-02-PLAN
+  - test_cms1500_header_row_frozen            -> activated by 05-02-PLAN
+  - test_yellow_fill_below_threshold          -> activated by 05-02-PLAN
+  - test_no_fill_above_threshold              -> activated by 05-02-PLAN
+  - test_import_write_workbook_from_pipeline  -> activated by 05-03-PLAN
+  - test_text_format_npi_column               -> activated by 05-03-PLAN
+  - test_text_format_date_column              -> activated by 05-03-PLAN
+  - test_cms1500_one_row_per_page             -> activated by 05-03-PLAN
 """
 import pytest
 from pathlib import Path
@@ -182,18 +182,21 @@ def test_no_fill_above_threshold(tmp_path):
 # Integration stubs (activated by 05-03-PLAN)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="stub — activated by 05-03-PLAN")
 def test_import_write_workbook_from_pipeline():
     """write_workbook is importable from the pipeline package (OUT-01)."""
     from pipeline import write_workbook
     assert callable(write_workbook)
 
 
-@pytest.mark.skip(reason="stub — activated by 05-03-PLAN")
 def test_text_format_npi_column(tmp_path):
     """NPI column cells use text format '@' to preserve leading zeros (OUT-05)."""
     import openpyxl
     from pipeline import write_workbook
+    from config.cms1500 import CMS1500_FIELDS
+    # Writer uses fd.label or fd.name as header (D-01) — look up label for NPI field
+    npi_label = next(
+        fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "box17b_referring_npi"
+    )
     results = _make_results(["box17b_referring_npi"], value="0123456789", confidence=95.0)
     result = write_workbook(
         cms_pages=[results],
@@ -203,16 +206,19 @@ def test_text_format_npi_column(tmp_path):
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
-    col_idx = header_row.index("box17b_referring_npi") + 1
+    col_idx = header_row.index(npi_label) + 1
     cell = ws.cell(2, col_idx)
     assert cell.number_format == "@"
 
 
-@pytest.mark.skip(reason="stub — activated by 05-03-PLAN")
 def test_text_format_date_column(tmp_path):
     """Date column cells use text format '@' to preserve date strings as-is (OUT-05)."""
     import openpyxl
     from pipeline import write_workbook
+    from config.cms1500 import CMS1500_TABLE_FIELDS
+    # Writer uses "{tfd.label or tfd.name} SL{N}" as header (D-02/D-04) — look up SL1 header
+    date_tfd = next(tfd for tfd in CMS1500_TABLE_FIELDS if tfd.name == "box24_date_from")
+    date_sl1_header = f"{date_tfd.label or date_tfd.name} SL1"
     results = _make_results(["box24_date_from_sl1"], value="01/01/2024", confidence=95.0)
     result = write_workbook(
         cms_pages=[results],
@@ -222,12 +228,11 @@ def test_text_format_date_column(tmp_path):
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
-    col_idx = header_row.index("box24_date_from_sl1") + 1
+    col_idx = header_row.index(date_sl1_header) + 1
     cell = ws.cell(2, col_idx)
     assert cell.number_format == "@"
 
 
-@pytest.mark.skip(reason="stub — activated by 05-03-PLAN")
 def test_cms1500_one_row_per_page(tmp_path):
     """CMS-1500 sheet has one row per page (header + N data rows for N pages) (OUT-02)."""
     import openpyxl
