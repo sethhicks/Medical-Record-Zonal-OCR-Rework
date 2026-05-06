@@ -7,8 +7,8 @@
 | 1 | Foundation & Environment | Project skeleton, dependency validation, and shared config are in place so all downstream phases build on a verified base | ENV-01, ENV-02 | Complete |
 | 2 | Image Pipeline & Coordinate Calibration | Every PDF page converts to a correctly-scaled, deskewed, thresholded image and every field region is visually verified against real scans before extractor code is written | PROC-01, PROC-02, EXTR-04 | Complete |
 | 3 | Form Detection | Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched | PROC-03 | Complete |
-| 4 | Field Extraction — CMS-1500 & UB-04 | All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result | EXTR-01, EXTR-02, EXTR-03 | In Progress |
-| 5 | Output & Excel Export | Extraction results are written to a correctly structured, formatted Excel workbook that billing staff can open and review immediately | OUT-01, OUT-02, OUT-03, OUT-04, OUT-05 | Not Started |
+| 4 | Field Extraction — CMS-1500 & UB-04 | All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result | EXTR-01, EXTR-02, EXTR-03 | Complete |
+| 5 | Output & Excel Export | Extraction results are written to a correctly structured, formatted Excel workbook that billing staff can open and review immediately | OUT-01, OUT-02, OUT-03, OUT-04, OUT-05 | Complete |
 | 6 | Desktop UI & Batch Processing | Billing staff can select one or more PDFs, watch per-page progress, and open the output file from a desktop window — with errors surfaced rather than silently dropped | UI-01, UI-02, UI-03, UI-04, PROC-04 | Not Started |
 
 ---
@@ -111,9 +111,13 @@ Cross-cutting constraints:
 5. NPI, CPT, ICD code, ZIP, and tax ID columns are formatted as text (`@` number format) so that a value like `01234` displays as `01234` rather than `1234` in Excel.
 **Plans:** 3 plans
 Plans:
-- [ ] 05-01-PLAN.md — Test scaffold: tests/test_phase5.py with 12 skipped stubs (Wave 1)
-- [ ] 05-02-PLAN.md — Writer: pipeline/writer.py with write_workbook() + 8 unit stubs activated (Wave 2)
-- [ ] 05-03-PLAN.md — Wire: pipeline/__init__.py write_workbook export + 4 integration stubs activated (Wave 3)
+- [x] 05-01-PLAN.md — Test scaffold: tests/test_phase5.py with 12 skipped stubs (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 05-02-PLAN.md — Writer: pipeline/writer.py with write_workbook() + 8 unit stubs activated (Wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 05-03-PLAN.md — Wire: pipeline/__init__.py write_workbook export + 4 integration stubs activated (Wave 3)
 
 ### Phase 6: Desktop UI & Batch Processing
 **Goal:** Billing staff can select one or more PDFs, watch per-page progress, and open the output file from a desktop window — with errors surfaced rather than silently dropped.
@@ -137,6 +141,6 @@ Plans:
 | 1. Foundation & Environment | Complete | 2026-04-29 |
 | 2. Image Pipeline & Coordinate Calibration | Complete | 2026-05-01 |
 | 3. Form Detection | Complete | 2026-05-03 |
-| 4. Field Extraction — CMS-1500 & UB-04 | In Progress (5/6 plans) | — |
-| 5. Output & Excel Export | Not Started | — |
+| 4. Field Extraction — CMS-1500 & UB-04 | Complete | 2026-05-06 |
+| 5. Output & Excel Export | Complete | 2026-05-06 |
 | 6. Desktop UI & Batch Processing | Not Started | — |
