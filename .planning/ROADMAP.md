@@ -109,7 +109,11 @@ Cross-cutting constraints:
 3. The UB-04 sheet contains `RL1_rev_code` through `RL22_non_covered` column groups (twenty-two revenue-line blocks, each with all sub-fields) rather than separate rows per revenue line.
 4. Any cell whose field confidence is below the configured threshold (default 60%) is highlighted yellow; a cell with confidence at or above the threshold has no fill; changing the threshold in `settings.json` and rerunning produces a different set of yellow cells.
 5. NPI, CPT, ICD code, ZIP, and tax ID columns are formatted as text (`@` number format) so that a value like `01234` displays as `01234` rather than `1234` in Excel.
-**Plans:** TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 05-01-PLAN.md — Test scaffold: tests/test_phase5.py with 12 skipped stubs (Wave 1)
+- [ ] 05-02-PLAN.md — Writer: pipeline/writer.py with write_workbook() + 8 unit stubs activated (Wave 2)
+- [ ] 05-03-PLAN.md — Wire: pipeline/__init__.py write_workbook export + 4 integration stubs activated (Wave 3)
 
 ### Phase 6: Desktop UI & Batch Processing
 **Goal:** Billing staff can select one or more PDFs, watch per-page progress, and open the output file from a desktop window — with errors surfaced rather than silently dropped.
