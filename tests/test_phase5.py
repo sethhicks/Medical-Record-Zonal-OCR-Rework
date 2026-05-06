@@ -42,7 +42,6 @@ def _make_results(field_names, value="", confidence=95.0):
 # Unit stubs (activated by 05-02-PLAN)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
 def test_write_workbook_returns_str(tmp_path):
     """write_workbook returns a str (file path to created workbook) (OUT-01)."""
     from pipeline import write_workbook
@@ -54,7 +53,6 @@ def test_write_workbook_returns_str(tmp_path):
     assert isinstance(result, str)
 
 
-@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
 def test_output_file_created(tmp_path):
     """write_workbook creates the output .xlsx file on disk (OUT-01)."""
     from pipeline import write_workbook
@@ -66,7 +64,6 @@ def test_output_file_created(tmp_path):
     assert Path(result).exists()
 
 
-@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
 def test_two_sheets_named_correctly(tmp_path):
     """Workbook contains exactly two sheets: 'CMS-1500' and 'UB-04' (OUT-02)."""
     import openpyxl
@@ -80,7 +77,6 @@ def test_two_sheets_named_correctly(tmp_path):
     assert wb.sheetnames == ["CMS-1500", "UB-04"]
 
 
-@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
 def test_cms1500_column_count(tmp_path):
     """CMS-1500 sheet has exactly 89 columns (one per FieldResult) (OUT-02)."""
     import openpyxl
@@ -88,7 +84,7 @@ def test_cms1500_column_count(tmp_path):
     from config.cms1500 import CMS1500_FIELDS, CMS1500_TABLE_FIELDS
     field_names = [fd.name for fd in CMS1500_FIELDS]
     for tfd in CMS1500_TABLE_FIELDS:
-        for row in range(1, tfd.rows + 1):
+        for row in range(1, len(tfd.row_boxes) + 1):
             field_names.append(f"{tfd.name}_sl{row}")
     results = _make_results(field_names)
     result = write_workbook(
@@ -101,7 +97,6 @@ def test_cms1500_column_count(tmp_path):
     assert ws.max_column == 89
 
 
-@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
 def test_ub04_column_count(tmp_path):
     """UB-04 sheet has exactly 178 columns (one per FieldResult) (OUT-02)."""
     import openpyxl
@@ -109,7 +104,7 @@ def test_ub04_column_count(tmp_path):
     from config.ub04 import UB04_FIELDS, UB04_TABLE_FIELDS
     field_names = [fd.name for fd in UB04_FIELDS]
     for tfd in UB04_TABLE_FIELDS:
-        for row in range(1, tfd.rows + 1):
+        for row in range(1, len(tfd.row_boxes) + 1):
             field_names.append(f"{tfd.name}_rl{row}")
     results = _make_results(field_names)
     result = write_workbook(
@@ -122,7 +117,6 @@ def test_ub04_column_count(tmp_path):
     assert ws.max_column == 178
 
 
-@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
 def test_cms1500_header_row_frozen(tmp_path):
     """CMS-1500 sheet header row is frozen (freeze_panes == 'A2') (OUT-03)."""
     import openpyxl
@@ -137,11 +131,13 @@ def test_cms1500_header_row_frozen(tmp_path):
     assert ws.freeze_panes == "A2"
 
 
-@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
 def test_yellow_fill_below_threshold(tmp_path):
     """Cell for FieldResult with confidence below threshold is filled yellow (OUT-04)."""
     import openpyxl
     from pipeline import write_workbook
+    from config.cms1500 import CMS1500_FIELDS
+    # Find the label for box1_insurance_type to look it up in the header row
+    label = next(fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "box1_insurance_type")
     results = _make_results(["box1_insurance_type"], value="X", confidence=10.0)
     result = write_workbook(
         cms_pages=[results],
@@ -150,18 +146,21 @@ def test_yellow_fill_below_threshold(tmp_path):
     )
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
-    # Find the data cell in row 2 for the field column
+    # Find the data cell in row 2 for the field column (look up by label in header row)
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
-    col_idx = header_row.index("box1_insurance_type") + 1
+    col_idx = header_row.index(label) + 1
     cell = ws.cell(2, col_idx)
-    assert cell.fill.fgColor.rgb == "FFFF00"
+    # openpyxl stores colors as ARGB; value may be "FFFF00" or "00FFFF00" (with alpha prefix)
+    assert cell.fill.fgColor.rgb.endswith("FFFF00")
 
 
-@pytest.mark.skip(reason="stub — activated by 05-02-PLAN")
 def test_no_fill_above_threshold(tmp_path):
     """Cell for FieldResult with confidence above threshold has no yellow fill (OUT-04)."""
     import openpyxl
     from pipeline import write_workbook
+    from config.cms1500 import CMS1500_FIELDS
+    # Find the label for box1_insurance_type to look it up in the header row
+    label = next(fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "box1_insurance_type")
     results = _make_results(["box1_insurance_type"], value="X", confidence=90.0)
     result = write_workbook(
         cms_pages=[results],
@@ -171,7 +170,7 @@ def test_no_fill_above_threshold(tmp_path):
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
-    col_idx = header_row.index("box1_insurance_type") + 1
+    col_idx = header_row.index(label) + 1
     cell = ws.cell(2, col_idx)
     # Cell should not be yellow-filled
     fill = cell.fill
