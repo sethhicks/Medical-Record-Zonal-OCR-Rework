@@ -44,7 +44,7 @@ def detect_form_type(image: "Image.Image") -> str:
     footer_psm11 = pytesseract.image_to_string(footer_gray, config='--psm 11').upper()
 
     # CMS-1500 anchor evaluation (partial substring matching — exact strings garble on scans)
-    heal_hit = 'HEAL' in header_text
+    heal_hit = 'HEALTH' in header_text
     nuc_hit = 'NUC' in footer_psm6 or 'NUC' in footer_psm11
     form1500_hit = (
         ('FORM' in footer_psm6 and '1500' in footer_psm6) or
