@@ -129,8 +129,11 @@ Plans:
 3. Selecting two or more PDF files and starting a run produces a single output workbook whose CMS-1500 and UB-04 sheets contain rows from all input files, in the order the pages were processed.
 4. When processing completes, a button appears (or becomes active) that opens the output Excel file in the system default application with a single click.
 5. Pages that fail during conversion or extraction appear as blank rows in the appropriate sheet with the `extraction_error` column populated with the error message; the UI displays a summary of how many pages failed after the run completes.
-**Plans:** TBD
-**UI hint**: yes
+**Plans:** 3 plans
+Plans:
+- [ ] 06-01-PLAN.md — Test scaffold: tests/test_phase6.py with 12 skipped stubs (Wave 0)
+- [ ] 06-02-PLAN.md — Full implementation: main.py OCRApp class with all D-01 through D-14 decisions (Wave 1)
+- [ ] 06-03-PLAN.md — Integration: activate smoke + batch tests with real test.pdf (Wave 2, has checkpoint)
 
 ---
 
