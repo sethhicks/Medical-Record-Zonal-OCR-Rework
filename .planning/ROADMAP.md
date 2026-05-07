@@ -9,7 +9,7 @@
 | 3 | Form Detection | Each page is reliably classified as CMS-1500, UB-04, or UNKNOWN using multi-anchor logic so the correct extractor is always dispatched | PROC-03 | Complete |
 | 4 | Field Extraction — CMS-1500 & UB-04 | All billing-critical fields for both form types are extracted with per-field PSM modes, character whitelists, and confidence scores attached to every result | EXTR-01, EXTR-02, EXTR-03 | Complete |
 | 5 | Output & Excel Export | Extraction results are written to a correctly structured, formatted Excel workbook that billing staff can open and review immediately | OUT-01, OUT-02, OUT-03, OUT-04, OUT-05 | Complete |
-| 6 | Desktop UI & Batch Processing | Billing staff can select one or more PDFs, watch per-page progress, and open the output file from a desktop window — with errors surfaced rather than silently dropped | UI-01, UI-02, UI-03, UI-04, PROC-04 | Not Started |
+| 6 | Desktop UI & Batch Processing | Billing staff can select one or more PDFs, watch per-page progress, and open the output file from a desktop window — with errors surfaced rather than silently dropped | UI-01, UI-02, UI-03, UI-04, PROC-04 | Complete |
 
 ---
 
@@ -93,7 +93,7 @@ Plans:
 - [x] 04-05-PLAN.md — Wire: pipeline/__init__.py re-export + 2 import tests activated (Wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion — human checkpoint)*
-- [ ] 04-06-PLAN.md — Integration calibration: sweep test.pdf, document rates, activate 4 integration tests (Wave 3)
+- [x] 04-06-PLAN.md — Integration calibration: sweep test.pdf, document rates, activate 4 integration tests (Wave 3)
 
 Cross-cutting constraints:
 - `pytesseract.pytesseract.tesseract_cmd = settings['tesseract_cmd']` set at start of each extractor function (all OCR plans)
@@ -131,13 +131,13 @@ Plans:
 5. Pages that fail during conversion or extraction appear as blank rows in the appropriate sheet with the `extraction_error` column populated with the error message; the UI displays a summary of how many pages failed after the run completes.
 **Plans:** 3 plans
 Plans:
-- [ ] 06-01-PLAN.md — Test scaffold: tests/test_phase6.py with 12 skipped stubs (Wave 0)
+- [x] 06-01-PLAN.md — Test scaffold: tests/test_phase6.py with 12 skipped stubs (Wave 0)
 
 **Wave 1** *(blocked on Wave 0 completion)*
-- [ ] 06-02-PLAN.md — Full main.py: OCRApp class, startup check, file selection, worker thread, poll callback, error rows in Excel (Wave 1)
+- [x] 06-02-PLAN.md — Full main.py: OCRApp class, startup check, file selection, worker thread, poll callback, error rows in Excel (Wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion — human checkpoint)*
-- [ ] 06-03-PLAN.md — Integration: human UI verify checkpoint + smoke tests on real test.pdf (Wave 2)
+- [x] 06-03-PLAN.md — Integration: human UI verify checkpoint + smoke tests on real test.pdf (Wave 2)
 
 Cross-cutting constraints:
 - `threading.Thread` + `queue.Queue` + `root.after(100, poll_queue)` — never call tkinter widgets from worker thread (all plans)
@@ -155,4 +155,4 @@ Cross-cutting constraints:
 | 3. Form Detection | Complete | 2026-05-03 |
 | 4. Field Extraction — CMS-1500 & UB-04 | Complete | 2026-05-06 |
 | 5. Output & Excel Export | Complete | 2026-05-06 |
-| 6. Desktop UI & Batch Processing | Ready to execute | — |
+| 6. Desktop UI & Batch Processing | Complete | 2026-05-07 |
