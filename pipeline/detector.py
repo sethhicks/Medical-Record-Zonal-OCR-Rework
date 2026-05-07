@@ -33,6 +33,15 @@ def detect_form_type(image: "Image.Image") -> str:
         'UB-04'    — ub04_score >= 1 and cms_score < 2
         'UNKNOWN'  — both match simultaneously, or neither matches threshold
     """
+    if image is None:
+        raise TypeError("detect_form_type requires a PIL Image, got None")
+    w, h = image.size
+    if (w, h) != (2550, 3300):
+        raise ValueError(
+            f"detect_form_type expects a 2550x3300 px image, got {w}x{h}. "
+            "Pass the output of convert_page() directly."
+        )
+
     # Crop to header and footer strips; convert to grayscale for Tesseract
     header_gray = image.crop(_HEADER_STRIP).convert('L')
     footer_gray = image.crop(_FOOTER_STRIP).convert('L')
