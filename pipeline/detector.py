@@ -11,7 +11,10 @@ Importable usage:
 import pytesseract
 from PIL import Image
 
-from config_loader import load_settings
+from config_loader import load_settings as _load_settings
+
+_settings = _load_settings()
+pytesseract.pytesseract.tesseract_cmd = _settings['tesseract_cmd']
 
 # Crop regions verified via pixel-level scan of all 30 test.pdf pages [2026-05-01]
 _HEADER_STRIP = (0, 0, 2550, 600)     # top 600 px — captures HEALTH INSURANCE banner at any y-offset
@@ -30,9 +33,6 @@ def detect_form_type(image: "Image.Image") -> str:
         'UB-04'    — ub04_score >= 1 and cms_score < 2
         'UNKNOWN'  — both match simultaneously, or neither matches threshold
     """
-    settings = load_settings()
-    pytesseract.pytesseract.tesseract_cmd = settings['tesseract_cmd']
-
     # Crop to header and footer strips; convert to grayscale for Tesseract
     header_gray = image.crop(_HEADER_STRIP).convert('L')
     footer_gray = image.crop(_FOOTER_STRIP).convert('L')
