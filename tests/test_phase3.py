@@ -13,6 +13,7 @@ Skip markers are removed by Wave 1 plans as each feature is implemented:
 """
 import pytest
 from pathlib import Path
+from unittest.mock import Mock
 
 _ROOT = Path(__file__).parent.parent
 _TEST_PDF = str(_ROOT / "test.pdf")
@@ -28,15 +29,15 @@ def test_cms1500_detection_mock(monkeypatch):
     from pipeline import detect_form_type
     from PIL import Image
 
-    responses = iter([
-        'HEALTH INSURANCE CLAIM FORM',          # call 1: header PSM6 -> HEAL hit
+    mock_ocr = Mock(side_effect=[
+        'HEALTH INSURANCE CLAIM FORM',          # call 1: header PSM6 -> HEALTH hit
         'NUCC Instruction Manual FORM 1500',    # call 2: footer PSM6 -> NUC + FORM1500 hit
         '',                                     # call 3: footer PSM11 -> no UB-04 anchors
     ])
-    monkeypatch.setattr(pytesseract, 'image_to_string',
-                        lambda img, config='': next(responses))
+    monkeypatch.setattr(pytesseract, 'image_to_string', mock_ocr)
     img = Image.new('RGB', (2550, 3300), 255)
     assert detect_form_type(img) == 'CMS-1500'
+    assert mock_ocr.call_count == 3
 
 
 def test_ub04_detection_mock(monkeypatch):
@@ -45,15 +46,15 @@ def test_ub04_detection_mock(monkeypatch):
     from pipeline import detect_form_type
     from PIL import Image
 
-    responses = iter([
-        '',              # call 1: header PSM6 -> no HEAL
+    mock_ocr = Mock(side_effect=[
+        '',              # call 1: header PSM6 -> no HEALTH
         '',              # call 2: footer PSM6 -> no CMS anchors
         'NUBC',          # call 3: footer PSM11 -> NUBC hit -> ub04_score=1, cms_score=0
     ])
-    monkeypatch.setattr(pytesseract, 'image_to_string',
-                        lambda img, config='': next(responses))
+    monkeypatch.setattr(pytesseract, 'image_to_string', mock_ocr)
     img = Image.new('RGB', (2550, 3300), 255)
     assert detect_form_type(img) == 'UB-04'
+    assert mock_ocr.call_count == 3
 
 
 def test_unknown_when_no_anchors(monkeypatch):
@@ -74,16 +75,16 @@ def test_both_match_returns_unknown(monkeypatch):
     from pipeline import detect_form_type
     from PIL import Image
 
-    responses = iter([
-        'HEALTH INSURANCE',                     # call 1: header -> HEAL hit (cms+1)
+    mock_ocr = Mock(side_effect=[
+        'HEALTH INSURANCE',                     # call 1: header -> HEALTH hit (cms+1)
         'NUCC Instruction FORM 1500 NUBC',      # call 2: footer PSM6 -> NUC+FORM1500 (cms+2), NUBC (ub04+1)
         '',                                     # call 3: footer PSM11
     ])
-    monkeypatch.setattr(pytesseract, 'image_to_string',
-                        lambda img, config='': next(responses))
+    monkeypatch.setattr(pytesseract, 'image_to_string', mock_ocr)
     img = Image.new('RGB', (2550, 3300), 255)
     # cms_score=3, ub04_score=1 -> both match -> UNKNOWN
     assert detect_form_type(img) == 'UNKNOWN'
+    assert mock_ocr.call_count == 3
 
 
 def test_unknown_result_is_string(monkeypatch):
