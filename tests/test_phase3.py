@@ -31,13 +31,14 @@ def test_cms1500_detection_mock(monkeypatch):
 
     mock_ocr = Mock(side_effect=[
         'HEALTH INSURANCE CLAIM FORM',          # call 1: header PSM6 -> HEALTH hit
-        'NUCC Instruction Manual FORM 1500',    # call 2: footer PSM6 -> NUC + FORM1500 hit
-        '',                                     # call 3: footer PSM11 -> no UB-04 anchors
+        '',                                     # call 2: header PSM11
+        'NUCC Instruction Manual FORM 1500',    # call 3: footer PSM6 -> NUC + FORM1500 hit
+        '',                                     # call 4: footer PSM11 -> no UB-04 anchors
     ])
     monkeypatch.setattr(pytesseract, 'image_to_string', mock_ocr)
     img = Image.new('RGB', (2550, 3300), 255)
     assert detect_form_type(img) == 'CMS-1500'
-    assert mock_ocr.call_count == 3
+    assert mock_ocr.call_count == 4
 
 
 def test_ub04_detection_mock(monkeypatch):
@@ -48,13 +49,14 @@ def test_ub04_detection_mock(monkeypatch):
 
     mock_ocr = Mock(side_effect=[
         '',              # call 1: header PSM6 -> no HEALTH
-        '',              # call 2: footer PSM6 -> no CMS anchors
-        'NUBC',          # call 3: footer PSM11 -> NUBC hit -> ub04_score=1, cms_score=0
+        '',              # call 2: header PSM11 -> no HEALTH
+        '',              # call 3: footer PSM6 -> no CMS anchors
+        'NUBC',          # call 4: footer PSM11 -> NUBC hit -> ub04_score=1, cms_score=0
     ])
     monkeypatch.setattr(pytesseract, 'image_to_string', mock_ocr)
     img = Image.new('RGB', (2550, 3300), 255)
     assert detect_form_type(img) == 'UB-04'
-    assert mock_ocr.call_count == 3
+    assert mock_ocr.call_count == 4
 
 
 def test_unknown_when_no_anchors(monkeypatch):
@@ -76,15 +78,16 @@ def test_both_match_returns_unknown(monkeypatch):
     from PIL import Image
 
     mock_ocr = Mock(side_effect=[
-        'HEALTH INSURANCE',                     # call 1: header -> HEALTH hit (cms+1)
-        'NUCC Instruction FORM 1500 NUBC',      # call 2: footer PSM6 -> NUC+FORM1500 (cms+2), NUBC (ub04+1)
-        '',                                     # call 3: footer PSM11
+        'HEALTH INSURANCE',                     # call 1: header PSM6 -> HEALTH hit (cms+1)
+        '',                                     # call 2: header PSM11
+        'NUCC Instruction FORM 1500 NUBC',      # call 3: footer PSM6 -> NUC+FORM1500 (cms+2), NUBC (ub04+1)
+        '',                                     # call 4: footer PSM11
     ])
     monkeypatch.setattr(pytesseract, 'image_to_string', mock_ocr)
     img = Image.new('RGB', (2550, 3300), 255)
     # cms_score=3, ub04_score=1 -> both match -> UNKNOWN
     assert detect_form_type(img) == 'UNKNOWN'
-    assert mock_ocr.call_count == 3
+    assert mock_ocr.call_count == 4
 
 
 def test_unknown_result_is_string(monkeypatch):
@@ -123,11 +126,18 @@ def test_cms1500_smoke(test_pdf_path):
     reason="test.pdf not present"
 )
 def test_ub04_smoke(test_pdf_path):
-    """Real test.pdf page 6 classifies as 'UB-04' (uses actual Tesseract, ~2s).
-
-    Note: Page 11 (second UB-04) returns 'UNKNOWN' due to OCR-degraded NUBC text —
-    this is expected behavior per RESEARCH.md, not a bug.
-    """
+    """Real test.pdf page 6 classifies as 'UB-04' (uses actual Tesseract, ~2s)."""
     from pipeline import convert_page, detect_form_type
     image = convert_page(test_pdf_path, 6)
+    assert detect_form_type(image) == 'UB-04'
+
+
+@pytest.mark.skipif(
+    not (_ROOT / "test.pdf").exists(),
+    reason="test.pdf not present"
+)
+def test_ub04_page11_smoke(test_pdf_path):
+    """Real test.pdf page 11 (scan-degraded UB-04) classifies as 'UB-04'."""
+    from pipeline import convert_page, detect_form_type
+    image = convert_page(test_pdf_path, 11)
     assert detect_form_type(image) == 'UB-04'

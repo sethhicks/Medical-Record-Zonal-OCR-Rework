@@ -42,24 +42,28 @@ def detect_form_type(image: "Image.Image") -> str:
             "Pass the output of convert_page() directly."
         )
 
-    # Crop to header and footer strips; convert to grayscale for Tesseract
+    # Crop to header and footer strips; convert to grayscale for Tesseract.
     header_gray = image.crop(_HEADER_STRIP).convert('L')
     footer_gray = image.crop(_FOOTER_STRIP).convert('L')
 
-    # 3 OCR calls: header PSM6, footer PSM6, footer PSM11
-    # PSM6 assembles the NUCC footer line correctly; PSM11 finds scattered NUBC text
-    header_text = pytesseract.image_to_string(header_gray, config='--psm 6').upper()
+    # 4 OCR calls: header PSM6+PSM11, footer PSM6+PSM11
+    # PSM6 assembles structured lines; PSM11 finds scattered text on degraded scans.
+    # Header uses both modes so partial banner recoveries (e.g. "HEAL" not "HEALTH")
+    # are captured on scan-degraded pages.
+    header_psm6 = pytesseract.image_to_string(header_gray, config='--psm 6').upper()
+    header_psm11 = pytesseract.image_to_string(header_gray, config='--psm 11').upper()
     footer_psm6 = pytesseract.image_to_string(footer_gray, config='--psm 6').upper()
     footer_psm11 = pytesseract.image_to_string(footer_gray, config='--psm 11').upper()
 
     # CMS-1500 anchor evaluation (partial substring matching — exact strings garble on scans)
-    heal_hit = 'HEALTH' in header_text
+    # 'HEAL' matches both 'HEALTH' and partially-recovered 'HEAL' fragments.
+    heal_hit = 'HEAL' in header_psm6 or 'HEAL' in header_psm11
     nuc_hit = 'NUC' in footer_psm6 or 'NUC' in footer_psm11
     form1500_hit = (
         ('FORM' in footer_psm6 and '1500' in footer_psm6) or
         ('FORM' in footer_psm11 and '1500' in footer_psm11)
     )
-    cms_score = sum([heal_hit, nuc_hit, form1500_hit])  # 0-3; needs >= 2 to classify
+    cms_score = sum([heal_hit, nuc_hit, form1500_hit])  # 0-3
 
     # UB-04 anchor evaluation
     nubc_hit = 'NUBC' in footer_psm6 or 'NUBC' in footer_psm11
@@ -68,12 +72,18 @@ def detect_form_type(image: "Image.Image") -> str:
         'CMS-1450' in footer_psm11 or
         '1450' in footer_psm11
     )
-    ub04_score = sum([nubc_hit, ub04_label_hit])  # 0-2; needs >= 1 to classify
+    # Field 80 ("REMARKS") is a UB-04-only label in the footer region; not present in
+    # CMS-1500 footers. Catches scan-degraded UB-04 pages where NUBC text is unrecoverable.
+    remarks_hit = 'REMARKS' in footer_psm11
+    ub04_score = sum([nubc_hit, ub04_label_hit, remarks_hit])  # 0-3; needs >= 1 to classify
 
-    # Classification — D-05: both match -> UNKNOWN; D-06: neither -> UNKNOWN
-    if cms_score >= 2 and ub04_score == 0:
+    # Classification:
+    # heal_hit alone is sufficient for CMS-1500 when no UB-04 signals present —
+    # "HEALTH INSURANCE CLAIM FORM" header is the strongest single-anchor identifier.
+    # D-05: both form types match -> UNKNOWN; D-06: neither -> UNKNOWN
+    if (cms_score >= 2 or heal_hit) and ub04_score == 0:
         return 'CMS-1500'
-    elif ub04_score >= 1 and cms_score < 2:
+    elif ub04_score >= 1 and not heal_hit and cms_score < 2:
         return 'UB-04'
     else:
         return 'UNKNOWN'
