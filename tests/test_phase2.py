@@ -77,7 +77,7 @@ def test_preprocess_debug_files(tmp_path, sample_settings, monkeypatch):
     assert (tmp_path / "debug_01_raw.png").exists()
     assert (tmp_path / "debug_02_scaled.png").exists()
     assert (tmp_path / "debug_03_deskewed.png").exists()
-    assert (tmp_path / "debug_04_threshold.png").exists()
+    assert (tmp_path / "debug_04_corrected.png").exists()
 
 
 def test_deskew_rejection(sample_settings):

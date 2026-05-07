@@ -122,27 +122,10 @@ def preprocess_page(
     if debug:
         Image.fromarray(cv2.cvtColor(corrected, cv2.COLOR_BGR2RGB)).save("debug_03_deskewed.png")
 
-    # -----------------------------------------------------------------------
-    # Step 3: Adaptive Threshold (D-08, D-09)
-    # Gaussian adaptive threshold removes grey scan-shadow bands.
-    # C=11 is the standard constant for scanned documents at 300 DPI.
-    # block_size must be odd (T-2-03 mitigation: auto-correct even values).
-    # -----------------------------------------------------------------------
-    block_size = settings.get("threshold_block_size", 31)
-    if block_size % 2 == 0:
-        block_size += 1  # T-2-03: cv2.adaptiveThreshold raises cv2.error for even block_size
-
-    gray_corrected = cv2.cvtColor(corrected, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.adaptiveThreshold(
-        gray_corrected, 255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY,
-        blockSize=block_size,
-        C=11,
-    )
-
     if debug:
-        Image.fromarray(cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)).save("debug_04_threshold.png")
+        Image.fromarray(cv2.cvtColor(corrected, cv2.COLOR_BGR2RGB)).save("debug_04_corrected.png")
 
     # Return as PIL Image, mode "RGB" (D-11, §2.6)
-    return Image.fromarray(cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB))
+    # Adaptive threshold was removed: it inverted gray-background Box 24 cells,
+    # causing Tesseract to read white text on black — Tesseract reads raw color fine.
+    return Image.fromarray(cv2.cvtColor(corrected, cv2.COLOR_BGR2RGB))

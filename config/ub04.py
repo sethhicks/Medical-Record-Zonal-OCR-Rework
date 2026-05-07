@@ -17,7 +17,7 @@ UB04_FIELDS: list[FieldDef] = [
     FieldDef(name="box4_type_of_bill",        box=(700,  200,  1100, 270), psm=7, whitelist="0123456789",                                 label="Box 4 — Type of Bill"),
     FieldDef(name="box5_federal_tax",         box=(1100, 200,  1800, 270), psm=7, whitelist="0123456789- ",                               label="Box 5 — Federal Tax Number"),
     FieldDef(name="box6_statement_period",    box=(1800, 200,  2520, 270), psm=7, whitelist="0123456789/ ",                               label="Box 6 — Statement Period"),
-    FieldDef(name="box8_patient_name",        box=(30,  270,  1270, 340),  psm=7, whitelist=None,                                         label="Box 8 — Patient Name"),
+    FieldDef(name="box8_patient_name",        box=(30,  270,  1270, 340),  psm=6, whitelist=None,                                         label="Box 8 — Patient Name"),
     FieldDef(name="box9_patient_address",     box=(30,  340,  1270, 410),  psm=6, whitelist=None,                                         label="Box 9 — Patient Address"),
     FieldDef(name="box10_birthdate",          box=(1270, 270,  1800, 340), psm=7, whitelist="0123456789/ ",                               label="Box 10 — Birthdate"),
     FieldDef(name="box11_sex",                box=(1800, 270,  2100, 340), psm=8, whitelist="MFU ",                                       label="Box 11 — Sex"),
@@ -34,7 +34,7 @@ UB04_FIELDS: list[FieldDef] = [
     FieldDef(name="box61_group_name",         box=(1600, 2850, 2200, 2950), psm=7, whitelist=None,                                        label="Box 61 — Group Name"),
     FieldDef(name="box63_treatment_auth",     box=(30,  2950,  900, 3050), psm=6, whitelist=None,                                         label="Box 63 — Treatment Auth Codes"),
     FieldDef(name="box64_doc_control",        box=(900,  2950, 1600, 3050), psm=7, whitelist=None,                                        label="Box 64 — Document Control Number"),
-    FieldDef(name="box66_dx_codes",           box=(30,  3050, 2520, 3200), psm=6, whitelist="0123456789. ABCDEFGHIJKLMNOPQRSTUVWXYZ",    label="Box 66–75 — Diagnosis/Procedure Codes"),
+    FieldDef(name="box66_dx_codes",           box=(30,  3050, 2520, 3200), psm=11, whitelist=None,                                       label="Box 66–75 — Diagnosis/Procedure Codes"),
     FieldDef(name="box76_attending_npi_name", box=(30,  3200, 2520, 3300), psm=6, whitelist=None,                                         label="Box 76 — Attending Provider NPI/Name"),
 ]
 

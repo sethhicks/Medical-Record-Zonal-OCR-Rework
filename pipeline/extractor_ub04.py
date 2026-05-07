@@ -44,7 +44,7 @@ def _ocr_region(
         words = [
             (t, int(c))
             for t, c in zip(d["text"], d["conf"])
-            if int(c) > 0 and t.strip()
+            if int(c) >= 0 and t.strip()
         ]
         if words:
             value = " ".join(t for t, _ in words).strip()
