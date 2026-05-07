@@ -70,7 +70,7 @@ progress:
 
 - ~~ICD-10 dot format (F32.9 vs F329)~~ **Resolved (Phase 4 discuss):** Retain dot — store as `F32.9`. ICD-10 whitelist: `"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789. "`. box21a-l whitelist update in 04-02.
 - Confidence threshold default (60%) — validate against a real representative batch during Phase 4 calibration (04-06 empirical sweep will document actual non-empty rates and calibrated threshold)
-- Output filename/directory convention — confirm before Phase 6 UI build (affects open-output button target path)
+- ~~Output filename/directory convention~~ **Resolved (Phase 6 discuss):** Always `extracted_results.xlsx` in `settings['output_dir']` (Desktop default); no per-run folder picker; path shown as read-only label in UI.
 - ~~PyMuPDF fallback~~ **Resolved (Phase 1):** Poppler-only; app exits with clear error if Poppler is missing — no fallback
 - ~~Exact scanner page size~~ **Discovered (Phase 2 plan 02-05):** test.pdf pages are 2478x3228 at 300 DPI (8.26x10.76 in, not 8.5x11 in). convert_page() resizes ±10% deviations to exactly 2550x3300 via Lanczos; coordinate calibration in 02-07 must verify alignment on resized images.
 
@@ -102,9 +102,10 @@ progress:
 
 ## Session Continuity
 
-Last session: 2026-05-06
-Stopped at: Phase 5 complete; ready to execute Phase 6 (Desktop UI & Batch Processing)
-Known issues: code review WR-01 (test_no_fill_above_threshold ARGB assertion), WR-02 (no mkdir before wb.save), WR-03 (dead field_names_in_order param) — tracked in 05-REVIEW.md
+Last session: 2026-05-07
+Stopped at: Phase 6 context gathered — ready to plan Phase 6 (Desktop UI & Batch Processing)
+Resume file: .planning/phases/06-desktop-ui-batch-processing/06-CONTEXT.md
+Known issues: code review WR-01 (test_no_fill_above_threshold ARGB assertion), WR-02 (no mkdir before wb.save), WR-03 (dead field_names_in_order param) — tracked in 05-REVIEW.md; WR-02 addressed in Phase 6 D-14 (mkdir before write_workbook)
 
 ## Notes
 
