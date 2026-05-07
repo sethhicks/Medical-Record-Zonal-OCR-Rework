@@ -29,7 +29,7 @@ progress:
 | 3 | Form Detection | Complete (3/3 plans) |
 | 4 | Field Extraction — CMS-1500 & UB-04 | Complete (6/6 plans) |
 | 5 | Output & Excel Export | Complete (3/3 plans) |
-| 6 | Desktop UI & Batch Processing | Not Started |
+| 6 | Desktop UI & Batch Processing | Planned (3 plans) |
 
 ## Recent Activity
 
@@ -64,6 +64,7 @@ progress:
 - 2026-05-06: detector.py fixed — all 32 test.pdf pages now classified correctly (0 UNKNOWN); 5 fixes: (1) heal_hit broadened to catch 'EALT' (handles "IEALTH" garble of "HEALTH"); (2) form1500_hit simplified to standalone '1500' check; (3) heal_hit used as priority-1 CMS indicator (UB-04 has no HEALTH header); (4) ub04_label_hit adds 'REMARK' anchor (UB-04 "80 REMARKS" field at page bottom); (5) UB04_THRESHOLD corrected to 0.16 (page 6, 0-indexed = PDF page 7, true UB-04 page); 17/17 tests passed
 - 2026-05-06: coordinate calibration round 2 — 6 CMS-1500 field groups and 2 UB-04 fields adjusted via debug crop inspection; CMS fixes: box2/box3 y=530-590→565-640, box5 y=590-750→660-775, box21 row-1 (a-d,i-l) y=1870-1950→1940-2010, box21 row-2 (e-h) y=1960-2040→2015-2085 (all were hitting label row, not value row); UB-04 fixes: box8 psm=7→6 (PSM 7 returned nothing on wide crops), box66 psm=6→11 + whitelist removed (PSM 11 finds ICD codes in noisy grid; PSM 6+whitelist returned empty); box2 now returns patient name; box66 now returns partial ICD codes; 17/17 tests still pass; remaining: box21a reads 'TAX9' not 'I96' (whitelist OCR noise), many single fields still noisy, UB-04 revenue-line column coords unverified
 - 2026-05-06: Phase 5 planned — 3 plans in 3 waves; Wave 1 (test scaffold), Wave 2 (pipeline/writer.py with write_workbook()), Wave 3 (pipeline/__init__.py re-export + integration tests); plan checker: VERIFICATION PASSED
+- 2026-05-07: Phase 6 planned — 3 plans in 3 waves; Wave 0 (test scaffold), Wave 1 (full main.py OCRApp implementation), Wave 2 (integration smoke tests, human checkpoint); all 5 requirements covered: UI-01, UI-02, UI-03, UI-04, PROC-04
 - 2026-05-06: Phase 5 COMPLETE — write_workbook() created in pipeline/writer.py; CMS-1500 sheet (89 cols), UB-04 sheet (178 cols); header frozen A2, col width 15; yellow fill for confidence < threshold or -1.0; text-format (@) for NPI/date/CPT/ICD/charge/diag columns; write_workbook exported from pipeline; 60/60 tests passing; code review: 3 warnings (dead param, missing mkdir, test assertion), 2 info; verification: 9/9 must-haves passed
 
 ## Open Decisions

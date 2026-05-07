@@ -132,8 +132,17 @@ Plans:
 **Plans:** 3 plans
 Plans:
 - [ ] 06-01-PLAN.md — Test scaffold: tests/test_phase6.py with 12 skipped stubs (Wave 0)
-- [ ] 06-02-PLAN.md — Full implementation: main.py OCRApp class with all D-01 through D-14 decisions (Wave 1)
-- [ ] 06-03-PLAN.md — Integration: activate smoke + batch tests with real test.pdf (Wave 2, has checkpoint)
+
+**Wave 1** *(blocked on Wave 0 completion)*
+- [ ] 06-02-PLAN.md — Full main.py: OCRApp class, startup check, file selection, worker thread, poll callback, error rows in Excel (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion — human checkpoint)*
+- [ ] 06-03-PLAN.md — Integration: human UI verify checkpoint + smoke tests on real test.pdf (Wave 2)
+
+Cross-cutting constraints:
+- `threading.Thread` + `queue.Queue` + `root.after(100, poll_queue)` — never call tkinter widgets from worker thread (all plans)
+- `run_checks()` called before `Tk()` construction — startup sequence enforced (06-02)
+- Done message is a 3-tuple `("done", output_path, error_count)` — consumers must unpack 3 elements (all plans)
 
 ---
 
@@ -146,4 +155,4 @@ Plans:
 | 3. Form Detection | Complete | 2026-05-03 |
 | 4. Field Extraction — CMS-1500 & UB-04 | Complete | 2026-05-06 |
 | 5. Output & Excel Export | Complete | 2026-05-06 |
-| 6. Desktop UI & Batch Processing | Not Started | — |
+| 6. Desktop UI & Batch Processing | Ready to execute | — |
