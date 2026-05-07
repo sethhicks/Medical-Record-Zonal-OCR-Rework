@@ -8,7 +8,8 @@ import pytest
 def test_pdf_path() -> str:
     """Absolute path to test.pdf in the project root."""
     path = Path(__file__).parent.parent / "test.pdf"
-    assert path.exists(), f"test.pdf not found at {path}"
+    if not path.exists():
+        pytest.skip("test.pdf not found — smoke tests require the reference sample")
     return str(path)
 
 

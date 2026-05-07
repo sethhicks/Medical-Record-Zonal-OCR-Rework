@@ -106,6 +106,10 @@ def test_import_from_pipeline():
     assert callable(detect_form_type)
 
 
+@pytest.mark.skipif(
+    not (_ROOT / "test.pdf").exists(),
+    reason="test.pdf not present"
+)
 def test_cms1500_smoke(test_pdf_path):
     """Real test.pdf page 0 classifies as 'CMS-1500' (uses actual Tesseract, ~2s)."""
     from pipeline import convert_page, detect_form_type
@@ -113,6 +117,10 @@ def test_cms1500_smoke(test_pdf_path):
     assert detect_form_type(image) == 'CMS-1500'
 
 
+@pytest.mark.skipif(
+    not (_ROOT / "test.pdf").exists(),
+    reason="test.pdf not present"
+)
 def test_ub04_smoke(test_pdf_path):
     """Real test.pdf page 6 classifies as 'UB-04' (uses actual Tesseract, ~2s).
 
