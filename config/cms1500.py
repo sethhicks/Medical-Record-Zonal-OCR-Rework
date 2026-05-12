@@ -22,25 +22,18 @@ CMS1500_FIELDS: list[FieldDef] = [
 
 
 # ---------------------------------------------------------------------------
-# CMS1500_TABLE_FIELDS — 1 Box 24 sub-field, 6 service line rows
-# Row y-ranges: SL1(2185–2272), SL2(2272–2359), SL3(2359–2446),
-#               SL4(2446–2533), SL5(2533–2620), SL6(2620–2707)
-# date_of_service x: 55–210 — skips row-number label (x≈30–55) and To-date column
+# CMS1500_TABLE_FIELDS — 1 Box 24 sub-field, service line 1 only
+# SL1 is always the first and most reliably filled row on every claim.
 # ---------------------------------------------------------------------------
 
 CMS1500_TABLE_FIELDS: list[TableFieldDef] = [
     TableFieldDef(
         name="date_of_service",
         row_boxes=[
-            (55,  2185, 210, 2272),  # SL1
-            (55,  2272, 210, 2359),  # SL2
-            (55,  2359, 210, 2446),  # SL3
-            (55,  2446, 210, 2533),  # SL4
-            (55,  2533, 210, 2620),  # SL5
-            (55,  2620, 210, 2707),  # SL6
+            (55, 2185, 210, 2272),  # SL1 only
         ],
         psm=7,
         whitelist="0123456789/ ",
-        label="Box 24 — Date of Service (From date only)",
+        label="Box 24 — Date of Service",
     ),
 ]

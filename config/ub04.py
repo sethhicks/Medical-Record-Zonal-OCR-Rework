@@ -24,41 +24,19 @@ UB04_FIELDS: list[FieldDef] = [
 
 
 # ---------------------------------------------------------------------------
-# UB04_TABLE_FIELDS — 1 revenue line sub-field, 22 rows
-# Revenue section starts at y≈860 (first data row after column headers at y≈790).
-# Row height: 47px.  Column 45 (SERV DATE): x=1000–1270.
-# Note: column 45 is blank on inpatient claims; present for outpatient claims.
+# UB04_TABLE_FIELDS — 1 revenue line sub-field, row 1 only
+# RL1 is always the first and most reliably filled row on every claim.
+# Column 45 (SERV DATE): x=1000–1270; row 1 y=860–907.
 # ---------------------------------------------------------------------------
 
 UB04_TABLE_FIELDS: list[TableFieldDef] = [
     TableFieldDef(
         name="date_of_service",
         row_boxes=[
-            (1000,  860, 1270,  907),  # RL1
-            (1000,  907, 1270,  954),  # RL2
-            (1000,  954, 1270, 1001),  # RL3
-            (1000, 1001, 1270, 1048),  # RL4
-            (1000, 1048, 1270, 1095),  # RL5
-            (1000, 1095, 1270, 1142),  # RL6
-            (1000, 1142, 1270, 1189),  # RL7
-            (1000, 1189, 1270, 1236),  # RL8
-            (1000, 1236, 1270, 1283),  # RL9
-            (1000, 1283, 1270, 1330),  # RL10
-            (1000, 1330, 1270, 1377),  # RL11
-            (1000, 1377, 1270, 1424),  # RL12
-            (1000, 1424, 1270, 1471),  # RL13
-            (1000, 1471, 1270, 1518),  # RL14
-            (1000, 1518, 1270, 1565),  # RL15
-            (1000, 1565, 1270, 1612),  # RL16
-            (1000, 1612, 1270, 1659),  # RL17
-            (1000, 1659, 1270, 1706),  # RL18
-            (1000, 1706, 1270, 1753),  # RL19
-            (1000, 1753, 1270, 1800),  # RL20
-            (1000, 1800, 1270, 1847),  # RL21
-            (1000, 1847, 1270, 1894),  # RL22
+            (1000, 860, 1270, 907),  # RL1 only
         ],
         psm=7,
         whitelist="0123456789/ ",
-        label="UB-04 Revenue Line — Service Date (col 45)",
+        label="UB-04 Revenue Line — Service Date",
     ),
 ]

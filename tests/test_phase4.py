@@ -34,7 +34,7 @@ def test_extract_cms1500_returns_list(monkeypatch):
 
 
 def test_extract_cms1500_result_count(monkeypatch):
-    """extract_cms1500 returns exactly 9 FieldResults (3 single + 6 table) (EXTR-01)."""
+    """extract_cms1500 returns exactly 4 FieldResults (3 single + 1 table) (EXTR-01)."""
     import pytesseract
     from pipeline import extract_cms1500
     from PIL import Image
@@ -45,7 +45,7 @@ def test_extract_cms1500_result_count(monkeypatch):
     img = Image.new('RGB', (2550, 3300), 255)
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_cms1500(img, settings)
-    assert len(result) == 9
+    assert len(result) == 4
 
 
 def test_extract_cms1500_single_field_names(monkeypatch):
@@ -78,8 +78,7 @@ def test_extract_cms1500_service_line_naming(monkeypatch):
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_cms1500(img, settings)
     result_names = {r.field_name for r in result}
-    for sl in range(1, 7):
-        assert f"date_of_service_sl{sl}" in result_names, f"Missing date_of_service_sl{sl}"
+    assert "date_of_service_sl1" in result_names, "Missing date_of_service_sl1"
 
 
 def test_extract_cms1500_blank_row_sentinel(monkeypatch):
@@ -137,7 +136,7 @@ def test_extract_ub04_returns_list(monkeypatch):
 
 
 def test_extract_ub04_result_count(monkeypatch):
-    """extract_ub04 returns exactly 25 FieldResults (3 single + 22 revenue-line) (EXTR-02)."""
+    """extract_ub04 returns exactly 4 FieldResults (3 single + 1 revenue-line) (EXTR-02)."""
     import pytesseract
     from pipeline import extract_ub04
     from PIL import Image
@@ -148,7 +147,7 @@ def test_extract_ub04_result_count(monkeypatch):
     img = Image.new('RGB', (2550, 3300), 255)
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_ub04(img, settings)
-    assert len(result) == 25
+    assert len(result) == 4
 
 
 def test_extract_ub04_revenue_line_naming(monkeypatch):
@@ -164,8 +163,7 @@ def test_extract_ub04_revenue_line_naming(monkeypatch):
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_ub04(img, settings)
     result_names = {r.field_name for r in result}
-    for rl in range(1, 23):
-        assert f"date_of_service_rl{rl}" in result_names, f"Missing date_of_service_rl{rl}"
+    assert "date_of_service_rl1" in result_names, "Missing date_of_service_rl1"
 
 
 def test_extract_ub04_blank_rl_sentinel(monkeypatch):

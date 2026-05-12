@@ -4,17 +4,17 @@
 Public API:
     extract_ub04(image, settings) -> list[FieldResult]
         Extracts billing-critical UB-04 fields from a preprocessed PIL Image.
-        Returns 25 FieldResult entries:
+        Returns 4 FieldResult entries:
           - patient_last_name, patient_first_name  (split from Box 8 wide scan)
           - total_charge                           (EST. Amount Due row)
-          - date_of_service_rl1 .. date_of_service_rl22  (revenue line service dates)
+          - date_of_service_rl1                    (first revenue line service date)
 
         Args:
             image: Preprocessed PIL Image from preprocess_page() — mode 'RGB', 2550x3300 px.
             settings: Settings dict from load_settings(); must contain 'tesseract_cmd'.
 
         Returns:
-            Flat list[FieldResult] — always 25 entries, blank rows have value='' confidence=-1.0.
+            Flat list[FieldResult] — always 4 entries, blank fields have value='' confidence=-1.0.
 """
 import re
 from typing import Optional
@@ -111,4 +111,4 @@ def extract_ub04(image: Image.Image, settings: dict) -> list[FieldResult]:
             value, conf = _ocr_region(crop, tfd.psm, tfd.whitelist)
             results.append(FieldResult(field_name=field_name, value=value, confidence=conf))
 
-    return results  # always 25 entries: 3 single + 22 table
+    return results  # always 4 entries: 3 single + 1 table

@@ -78,13 +78,10 @@ def test_two_sheets_named_correctly(tmp_path):
 
 
 def test_cms1500_column_count(tmp_path):
-    """CMS-1500 sheet has exactly 9 columns (one per FieldResult) (OUT-02)."""
+    """CMS-1500 sheet has exactly 4 columns (one per FieldResult) (OUT-02)."""
     import openpyxl
     from pipeline import write_workbook
-    field_names = (
-        ["patient_last_name", "patient_first_name", "total_charge"]
-        + [f"date_of_service_sl{i}" for i in range(1, 7)]
-    )
+    field_names = ["patient_last_name", "patient_first_name", "total_charge", "date_of_service_sl1"]
     results = _make_results(field_names)
     result = write_workbook(
         cms_pages=[results],
@@ -93,17 +90,14 @@ def test_cms1500_column_count(tmp_path):
     )
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
-    assert ws.max_column == 9
+    assert ws.max_column == 4
 
 
 def test_ub04_column_count(tmp_path):
-    """UB-04 sheet has exactly 25 columns (one per FieldResult) (OUT-02)."""
+    """UB-04 sheet has exactly 4 columns (one per FieldResult) (OUT-02)."""
     import openpyxl
     from pipeline import write_workbook
-    field_names = (
-        ["patient_last_name", "patient_first_name", "total_charge"]
-        + [f"date_of_service_rl{i}" for i in range(1, 23)]
-    )
+    field_names = ["patient_last_name", "patient_first_name", "total_charge", "date_of_service_rl1"]
     results = _make_results(field_names)
     result = write_workbook(
         cms_pages=[[]],
@@ -112,7 +106,7 @@ def test_ub04_column_count(tmp_path):
     )
     wb = openpyxl.load_workbook(result)
     ws = wb["UB-04"]
-    assert ws.max_column == 25
+    assert ws.max_column == 4
 
 
 def test_cms1500_header_row_frozen(tmp_path):
@@ -129,12 +123,10 @@ def test_cms1500_header_row_frozen(tmp_path):
     assert ws.freeze_panes == "A2"
 
 
-def test_yellow_fill_below_threshold(tmp_path):
-    """Cell for FieldResult with confidence below threshold is filled yellow (OUT-04)."""
+def test_no_yellow_fill(tmp_path):
+    """Cells are never highlighted — yellow fill has been removed (OUT-04)."""
     import openpyxl
     from pipeline import write_workbook
-    from config.cms1500 import CMS1500_FIELDS
-    label = next(fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "total_charge")
     results = _make_results(["total_charge"], value="150.00", confidence=10.0)
     result = write_workbook(
         cms_pages=[results],
@@ -143,32 +135,10 @@ def test_yellow_fill_below_threshold(tmp_path):
     )
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
-    header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
-    col_idx = header_row.index(label) + 1
-    cell = ws.cell(2, col_idx)
-    # openpyxl stores colors as ARGB; value may be "FFFF00" or "00FFFF00" (with alpha prefix)
-    assert cell.fill.fgColor.rgb.endswith("FFFF00")
-
-
-def test_no_fill_above_threshold(tmp_path):
-    """Cell for FieldResult with confidence above threshold has no yellow fill (OUT-04)."""
-    import openpyxl
-    from pipeline import write_workbook
-    from config.cms1500 import CMS1500_FIELDS
-    label = next(fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "total_charge")
-    results = _make_results(["total_charge"], value="150.00", confidence=90.0)
-    result = write_workbook(
-        cms_pages=[results],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path), "confidence_threshold": 60},
-    )
-    wb = openpyxl.load_workbook(result)
-    ws = wb["CMS-1500"]
-    header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
-    col_idx = header_row.index(label) + 1
-    cell = ws.cell(2, col_idx)
-    fill = cell.fill
-    assert fill is None or fill.fill_type == "none" or fill.fgColor.rgb != "FFFF00"
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            fill = cell.fill
+            assert fill is None or fill.fill_type == "none" or not fill.fgColor.rgb.endswith("FFFF00")
 
 
 # ---------------------------------------------------------------------------

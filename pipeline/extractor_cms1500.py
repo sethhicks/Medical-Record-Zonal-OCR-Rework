@@ -4,17 +4,17 @@
 Public API:
     extract_cms1500(image, settings) -> list[FieldResult]
         Extracts billing-critical CMS-1500 fields from a preprocessed PIL Image.
-        Returns 9 FieldResult entries:
+        Returns 4 FieldResult entries:
           - patient_last_name, patient_first_name  (parsed from Box 2 wide scan)
           - total_charge                            (Box 28)
-          - date_of_service_sl1 .. date_of_service_sl6  (Box 24 date from)
+          - date_of_service_sl1                    (Box 24 first service line date)
 
         Args:
             image: Preprocessed PIL Image from preprocess_page() — mode 'RGB', 2550x3300 px.
             settings: Settings dict from load_settings(); must contain 'tesseract_cmd'.
 
         Returns:
-            Flat list[FieldResult] with exactly 9 entries.
+            Flat list[FieldResult] with exactly 4 entries.
 """
 import re
 from typing import Optional
@@ -158,4 +158,4 @@ def extract_cms1500(image: Image.Image, settings: dict) -> list[FieldResult]:
                 value, conf = _ocr_region(crop, tfd.psm, tfd.whitelist)
             results.append(FieldResult(field_name=field_name, value=value, confidence=conf))
 
-    return results  # always 9 entries: 3 single + 6 table
+    return results  # always 4 entries: 3 single + 1 table

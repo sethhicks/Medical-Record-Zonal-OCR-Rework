@@ -32,17 +32,10 @@ from __future__ import annotations
 import pathlib
 
 import openpyxl
-from openpyxl.styles import PatternFill
 
 from config.cms1500 import CMS1500_FIELDS, CMS1500_TABLE_FIELDS
 from config.ub04 import UB04_FIELDS, UB04_TABLE_FIELDS
 from models.field_result import FieldResult
-
-# ---------------------------------------------------------------------------
-# Yellow fill constant (D-04)
-# ---------------------------------------------------------------------------
-
-_YELLOW = PatternFill(fill_type="solid", fgColor="FFFF00")
 
 # ---------------------------------------------------------------------------
 # Text-format substring set (D-07, D-08, D-09)
@@ -85,33 +78,31 @@ def _needs_text_format(field_name: str) -> bool:
 # ---------------------------------------------------------------------------
 
 def _cms_headers() -> list[str]:
-    """Build the ordered list of 9 CMS-1500 column headers."""
+    """Build CMS-1500 column headers (4 total: last name, first name, charge, date SL1)."""
     headers: list[str] = []
     for fd in CMS1500_FIELDS:
         if fd.name == "patient_name":
-            # extractor splits patient_name into two FieldResults
             headers.extend(["Box 2 — Patient Last Name", "Box 2 — Patient First Name"])
         else:
-            headers.append(fd.label or fd.name)   # D-01: label fallback to name
+            headers.append(fd.label or fd.name)
     for tfd in CMS1500_TABLE_FIELDS:
-        col_label = tfd.label or tfd.name      # D-04: same fallback for TableFieldDef
-        for i in range(6):                     # D-02: SL1..SL6
+        col_label = tfd.label or tfd.name
+        for i in range(len(tfd.row_boxes)):
             headers.append(f"{col_label} SL{i + 1}")
     return headers
 
 
 def _ub_headers() -> list[str]:
-    """Build the ordered list of 25 UB-04 column headers."""
+    """Build UB-04 column headers (4 total: last name, first name, charge, date RL1)."""
     headers: list[str] = []
     for fd in UB04_FIELDS:
         if fd.name == "patient_name":
-            # extractor splits patient_name into two FieldResults
             headers.extend(["Box 8 — Patient Last Name", "Box 8 — Patient First Name"])
         else:
-            headers.append(fd.label or fd.name)   # D-01
+            headers.append(fd.label or fd.name)
     for tfd in UB04_TABLE_FIELDS:
-        col_label = tfd.label or tfd.name      # D-04
-        for i in range(22):                    # D-03: RL1..RL22
+        col_label = tfd.label or tfd.name
+        for i in range(len(tfd.row_boxes)):
             headers.append(f"{col_label} RL{i + 1}")
     return headers
 
@@ -133,8 +124,8 @@ def _cms_col_map() -> dict[str, int]:
             col[fd.name] = idx
             idx += 1
     for tfd in CMS1500_TABLE_FIELDS:
-        for i in range(6):
-            col[f"{tfd.name}_sl{i + 1}"] = idx   # matches extractor naming (D-06)
+        for i in range(len(tfd.row_boxes)):
+            col[f"{tfd.name}_sl{i + 1}"] = idx
             idx += 1
     return col
 
@@ -145,15 +136,14 @@ def _ub_col_map() -> dict[str, int]:
     idx = 1
     for fd in UB04_FIELDS:
         if fd.name == "patient_name":
-            # extractor splits patient_name into two FieldResults
             col["patient_last_name"] = idx; idx += 1
             col["patient_first_name"] = idx; idx += 1
         else:
             col[fd.name] = idx
             idx += 1
     for tfd in UB04_TABLE_FIELDS:
-        for i in range(22):
-            col[f"{tfd.name}_rl{i + 1}"] = idx   # matches extractor naming (D-07)
+        for i in range(len(tfd.row_boxes)):
+            col[f"{tfd.name}_rl{i + 1}"] = idx
             idx += 1
     return col
 
@@ -202,13 +192,8 @@ def _write_sheet(
 
             cell = ws.cell(row=row_idx, column=col_idx, value=value)
 
-            # Text format (D-07, D-08, D-09)
             if _needs_text_format(field_name):
                 cell.number_format = "@"
-
-            # Yellow fill for low confidence or -1.0 sentinel (D-04)
-            if confidence == -1.0 or confidence < threshold:
-                cell.fill = _YELLOW
 
 
 # ---------------------------------------------------------------------------
