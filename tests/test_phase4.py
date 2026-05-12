@@ -1,10 +1,10 @@
 # tests/test_phase4.py
 """Phase 4 tests — EXTR-01, EXTR-02, EXTR-03 (field extraction).
 
-CMS-1500 extracts 16 fields: patient_last_name, patient_first_name, patient_dob,
-total_charge, date_of_service_sl1–sl6, cpt_code_sl1–sl6.
+CMS-1500 extracts 9 fields: patient_last_name, patient_first_name,
+total_charge, date_of_service_sl1–sl6.
 
-UB-04 extracts 26 fields: patient_last_name, patient_first_name, patient_dob,
+UB-04 extracts 25 fields: patient_last_name, patient_first_name,
 total_charge, date_of_service_rl1–rl22.
 """
 import pytest
@@ -34,7 +34,7 @@ def test_extract_cms1500_returns_list(monkeypatch):
 
 
 def test_extract_cms1500_result_count(monkeypatch):
-    """extract_cms1500 returns exactly 16 FieldResults (4 single + 12 table) (EXTR-01)."""
+    """extract_cms1500 returns exactly 9 FieldResults (3 single + 6 table) (EXTR-01)."""
     import pytesseract
     from pipeline import extract_cms1500
     from PIL import Image
@@ -45,7 +45,7 @@ def test_extract_cms1500_result_count(monkeypatch):
     img = Image.new('RGB', (2550, 3300), 255)
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_cms1500(img, settings)
-    assert len(result) == 16
+    assert len(result) == 9
 
 
 def test_extract_cms1500_single_field_names(monkeypatch):
@@ -61,7 +61,7 @@ def test_extract_cms1500_single_field_names(monkeypatch):
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_cms1500(img, settings)
     result_names = {r.field_name for r in result}
-    expected = {"patient_last_name", "patient_first_name", "patient_dob", "total_charge"}
+    expected = {"patient_last_name", "patient_first_name", "total_charge"}
     assert expected.issubset(result_names)
 
 
@@ -80,7 +80,6 @@ def test_extract_cms1500_service_line_naming(monkeypatch):
     result_names = {r.field_name for r in result}
     for sl in range(1, 7):
         assert f"date_of_service_sl{sl}" in result_names, f"Missing date_of_service_sl{sl}"
-        assert f"cpt_code_sl{sl}" in result_names, f"Missing cpt_code_sl{sl}"
 
 
 def test_extract_cms1500_blank_row_sentinel(monkeypatch):
@@ -138,7 +137,7 @@ def test_extract_ub04_returns_list(monkeypatch):
 
 
 def test_extract_ub04_result_count(monkeypatch):
-    """extract_ub04 returns exactly 26 FieldResults (4 single + 22 revenue-line) (EXTR-02)."""
+    """extract_ub04 returns exactly 25 FieldResults (3 single + 22 revenue-line) (EXTR-02)."""
     import pytesseract
     from pipeline import extract_ub04
     from PIL import Image
@@ -149,7 +148,7 @@ def test_extract_ub04_result_count(monkeypatch):
     img = Image.new('RGB', (2550, 3300), 255)
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_ub04(img, settings)
-    assert len(result) == 26
+    assert len(result) == 25
 
 
 def test_extract_ub04_revenue_line_naming(monkeypatch):
@@ -224,11 +223,11 @@ def test_import_extract_ub04_from_pipeline():
 # EXTR-03: Integration tests — empirical calibration (Wave 2)
 # ---------------------------------------------------------------------------
 
-def test_cms1500_whitelist_npi_chars(test_pdf_path, sample_settings):
-    """CMS-1500 CPT fields contain only whitelisted chars."""
+def test_cms1500_whitelist_date_chars(test_pdf_path, sample_settings):
+    """CMS-1500 date_of_service fields contain only whitelisted chars."""
     from pipeline import convert_page, preprocess_page, detect_form_type, extract_cms1500
 
-    cpt_chars = set("0123456789- ")
+    date_chars = set("0123456789/ ")
     for page_num in range(30):
         raw = convert_page(test_pdf_path, page_num)
         if detect_form_type(raw) != "CMS-1500":
@@ -238,8 +237,8 @@ def test_cms1500_whitelist_npi_chars(test_pdf_path, sample_settings):
         for r in results:
             if not r.value:
                 continue
-            if "cpt" in r.field_name:
-                bad = set(r.value) - cpt_chars
+            if "date_of_service" in r.field_name:
+                bad = set(r.value) - date_chars
                 assert not bad, f"{r.field_name}={r.value!r} has invalid chars: {bad}"
         return
     pytest.skip("No CMS-1500 page detected in test.pdf")
@@ -265,7 +264,7 @@ def test_ub04_whitelist_icd10_chars(test_pdf_path, sample_settings):
 
 
 def test_cms1500_smoke_80pct(test_pdf_path, sample_settings):
-    """Real CMS-1500 page: >=37% non-empty fields across reduced field set."""
+    """Real CMS-1500 page: >=37% non-empty fields (name, date, charge only)."""
     from pipeline import convert_page, preprocess_page, extract_cms1500
 
     CMS_THRESHOLD = 0.37  # page 19 measures ~43.8% with current coords

@@ -85,12 +85,12 @@ def _needs_text_format(field_name: str) -> bool:
 # ---------------------------------------------------------------------------
 
 def _cms_headers() -> list[str]:
-    """Build the ordered list of 16 CMS-1500 column headers."""
+    """Build the ordered list of 9 CMS-1500 column headers."""
     headers: list[str] = []
     for fd in CMS1500_FIELDS:
         if fd.name == "patient_name":
-            # extractor splits patient_name into three FieldResults
-            headers.extend(["Box 2 — Patient Last Name", "Box 2 — Patient First Name", "Box 2 — Patient DOB"])
+            # extractor splits patient_name into two FieldResults
+            headers.extend(["Box 2 — Patient Last Name", "Box 2 — Patient First Name"])
         else:
             headers.append(fd.label or fd.name)   # D-01: label fallback to name
     for tfd in CMS1500_TABLE_FIELDS:
@@ -101,14 +101,12 @@ def _cms_headers() -> list[str]:
 
 
 def _ub_headers() -> list[str]:
-    """Build the ordered list of 26 UB-04 column headers."""
+    """Build the ordered list of 25 UB-04 column headers."""
     headers: list[str] = []
     for fd in UB04_FIELDS:
         if fd.name == "patient_name":
             # extractor splits patient_name into two FieldResults
             headers.extend(["Box 8 — Patient Last Name", "Box 8 — Patient First Name"])
-        elif fd.name == "patient_dob":
-            headers.append("Box 10 — Patient DOB")
         else:
             headers.append(fd.label or fd.name)   # D-01
     for tfd in UB04_TABLE_FIELDS:
@@ -128,10 +126,9 @@ def _cms_col_map() -> dict[str, int]:
     idx = 1
     for fd in CMS1500_FIELDS:
         if fd.name == "patient_name":
-            # extractor splits patient_name into three FieldResults
+            # extractor splits patient_name into two FieldResults
             col["patient_last_name"] = idx; idx += 1
             col["patient_first_name"] = idx; idx += 1
-            col["patient_dob"] = idx; idx += 1
         else:
             col[fd.name] = idx
             idx += 1
@@ -226,7 +223,7 @@ def write_workbook(
     """Write extraction results to a formatted Excel workbook.
 
     Creates 'extracted_results.xlsx' in settings['output_dir'] with two sheets:
-    'CMS-1500' (16 columns) and 'UB-04' (26 columns). Header row frozen at A2,
+    'CMS-1500' (9 columns) and 'UB-04' (25 columns). Header row frozen at A2,
     all columns width 15. Cells with confidence below threshold (or -1.0 sentinel)
     get yellow fill. Code/date/monetary columns formatted as text to prevent
     Excel auto-conversion.
@@ -261,7 +258,7 @@ def write_workbook(
 
     # field_names in column order (passed to _write_sheet for iteration)
     cms_field_names = (
-        ["patient_last_name", "patient_first_name", "patient_dob"]
+        ["patient_last_name", "patient_first_name"]
         + [fd.name for fd in CMS1500_FIELDS if fd.name != "patient_name"]
         + [f"{tfd.name}_sl{i + 1}" for tfd in CMS1500_TABLE_FIELDS for i in range(6)]
     )

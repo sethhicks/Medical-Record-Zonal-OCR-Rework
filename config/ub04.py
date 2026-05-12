@@ -7,20 +7,19 @@ Adjust coordinates in this file directly after visual inspection (D-05, D-06).
 from config.base import FieldDef, TableFieldDef  # noqa: F401
 
 # ---------------------------------------------------------------------------
-# UB04_FIELDS — 3 single-value config entries (produce 4 FieldResults)
+# UB04_FIELDS — 2 single-value config entries (produce 3 FieldResults)
 # All boxes: (left, top, right, bottom) at 300 DPI / 2550x3300 px
 #
 # patient_name: wide PSM-11 band covering ±30px scan jitter; regex in extractor
-#   finds the LAST "Last, First" pattern to skip form label text.
-# patient_dob: LEFT side of form (Box 10); no whitelist — regex extracts date.
+#   finds the LAST "Last, First" pattern to skip form label text.  Produces two
+#   FieldResults: patient_last_name, patient_first_name.
 # total_charge: reads the "EST. AMOUNT DUE" row which is the cleanest numeric
 #   region on these scans (conf≈96 vs noise at the TOTALS row).
 # ---------------------------------------------------------------------------
 
 UB04_FIELDS: list[FieldDef] = [
-    FieldDef(name="patient_name", box=(30,  230, 1270,  360), psm=11, whitelist=None,            label="Box 8 — Patient Name (wide PSM-11 scan)"),
-    FieldDef(name="patient_dob",  box=(30,  363,  700,  450), psm=11, whitelist="0123456789/ ", label="Box 10 — Birthdate (LEFT side; extractor retries +15px if miss)"),
-    FieldDef(name="total_charge", box=(1700, 2060, 2300, 2150), psm=7, whitelist="0123456789. ", label="EST. Amount Due row — Total Charges proxy"),
+    FieldDef(name="patient_name", box=(30,  230, 1270,  360), psm=11, whitelist=None,             label="Box 8 — Patient Name (wide PSM-11 scan)"),
+    FieldDef(name="total_charge", box=(1700, 2060, 2300, 2150), psm=7,  whitelist="0123456789. ", label="EST. Amount Due row — Total Charges proxy"),
 ]
 
 
