@@ -29,52 +29,40 @@ _TEST_PDF = str(_ROOT / "test.pdf")
 # UI-01: File selection
 # ---------------------------------------------------------------------------
 
-def test_select_pdfs_populates_listbox():
+def test_select_pdfs_populates_listbox(tk_root):
     """Selecting PDFs via filedialog populates the Listbox with basenames (D-06)."""
-    import tkinter as tk
     import main
 
-    root = tk.Tk()
-    root.withdraw()
-    try:
-        settings = {"output_dir": "/tmp", "confidence_threshold": 60}
-        app = main.OCRApp(root, settings)
+    settings = {"output_dir": "/tmp", "confidence_threshold": 60}
+    app = main.OCRApp(tk_root, settings)
 
-        fake_paths = ("/some/path/claims_jan.pdf", "/some/path/claims_feb.pdf")
-        with patch("tkinter.filedialog.askopenfilenames", return_value=fake_paths):
-            app.on_select()
+    fake_paths = ("/some/path/claims_jan.pdf", "/some/path/claims_feb.pdf")
+    with patch("tkinter.filedialog.askopenfilenames", return_value=fake_paths):
+        app.on_select()
 
-        assert app.listbox.size() == 2
-        assert app.listbox.get(0) == "claims_jan.pdf"
-        assert app.listbox.get(1) == "claims_feb.pdf"
-        assert len(app._files) == 2
-    finally:
-        root.destroy()
+    assert app.listbox.size() == 2
+    assert app.listbox.get(0) == "claims_jan.pdf"
+    assert app.listbox.get(1) == "claims_feb.pdf"
+    assert len(app._files) == 2
 
 
-def test_clear_empties_file_list():
+def test_clear_empties_file_list(tk_root):
     """[Clear] button empties the Listbox and internal file list (D-07)."""
-    import tkinter as tk
     import main
 
-    root = tk.Tk()
-    root.withdraw()
-    try:
-        settings = {"output_dir": "/tmp", "confidence_threshold": 60}
-        app = main.OCRApp(root, settings)
+    settings = {"output_dir": "/tmp", "confidence_threshold": 60}
+    app = main.OCRApp(tk_root, settings)
 
-        fake_paths = ("/some/path/claims_jan.pdf",)
-        with patch("tkinter.filedialog.askopenfilenames", return_value=fake_paths):
-            app.on_select()
+    fake_paths = ("/some/path/claims_jan.pdf",)
+    with patch("tkinter.filedialog.askopenfilenames", return_value=fake_paths):
+        app.on_select()
 
-        assert app.listbox.size() == 1
+    assert app.listbox.size() == 1
 
-        app.on_clear()
+    app.on_clear()
 
-        assert app.listbox.size() == 0
-        assert app._files == []
-    finally:
-        root.destroy()
+    assert app.listbox.size() == 0
+    assert app._files == []
 
 
 # ---------------------------------------------------------------------------
@@ -107,23 +95,17 @@ def test_queue_done_message_format():
 # UI-03: Open output file
 # ---------------------------------------------------------------------------
 
-def test_output_label_shows_path():
+def test_output_label_shows_path(tk_root):
     """Output label text matches 'Output: {output_dir}/extracted_results.xlsx' (D-05)."""
     import os
-    import tkinter as tk
     import main
 
-    root = tk.Tk()
-    root.withdraw()
-    try:
-        output_dir = "/tmp/ocr_test_output"
-        settings = {"output_dir": output_dir, "confidence_threshold": 60}
-        app = main.OCRApp(root, settings)
+    output_dir = "/tmp/ocr_test_output"
+    settings = {"output_dir": output_dir, "confidence_threshold": 60}
+    app = main.OCRApp(tk_root, settings)
 
-        expected = f"Output: {os.path.join(output_dir, 'extracted_results.xlsx')}"
-        assert app.lbl_output["text"] == expected
-    finally:
-        root.destroy()
+    expected = f"Output: {os.path.join(output_dir, 'extracted_results.xlsx')}"
+    assert app.lbl_output["text"] == expected
 
 
 # ---------------------------------------------------------------------------
@@ -273,49 +255,42 @@ def test_import_main():
 # PROC-04: Batch / integration (activated by 06-03-PLAN)
 # ---------------------------------------------------------------------------
 
-def test_worker_smoke_real_pdf(test_pdf_path):
+def test_worker_smoke_real_pdf(test_pdf_path, tk_root):
     """Worker processes all 30 pages of test.pdf without raising (real Tesseract, ~60-120s)."""
     import threading
-    import tkinter as tk
     import queue as queue_mod
     from config_loader import load_settings
     from main import OCRApp
     import os
 
     settings = load_settings()
-    root = tk.Tk()
-    root.withdraw()
-    try:
-        app = OCRApp(root, settings)
-        app._files = [test_pdf_path]
+    app = OCRApp(tk_root, settings)
+    app._files = [test_pdf_path]
 
-        t = threading.Thread(target=app._worker, daemon=True)
-        t.start()
-        t.join(timeout=600)  # 30 pages * ~14-20s each on this machine
+    t = threading.Thread(target=app._worker, daemon=True)
+    t.start()
+    t.join(timeout=600)  # 30 pages * ~14-20s each on this machine
 
-        assert not t.is_alive(), "Worker thread timed out after 600s"
+    assert not t.is_alive(), "Worker thread timed out after 600s"
 
-        # Drain queue
-        messages = []
-        while not app._queue.empty():
-            messages.append(app._queue.get_nowait())
+    # Drain queue
+    messages = []
+    while not app._queue.empty():
+        messages.append(app._queue.get_nowait())
 
-        kinds = [m[0] for m in messages]
-        assert "done" in kinds, f"No 'done' message; got kinds: {kinds}"
+    kinds = [m[0] for m in messages]
+    assert "done" in kinds, f"No 'done' message; got kinds: {kinds}"
 
-        done_msg = next(m for m in messages if m[0] == "done")
-        # done message: ("done", output_path, error_count)
-        _, output_path, error_count = done_msg
-        assert output_path is not None, "write_workbook returned None"
-        assert os.path.exists(output_path), f"Output file not found: {output_path}"
-    finally:
-        root.destroy()
+    done_msg = next(m for m in messages if m[0] == "done")
+    # done message: ("done", output_path, error_count)
+    _, output_path, error_count = done_msg
+    assert output_path is not None, "write_workbook returned None"
+    assert os.path.exists(output_path), f"Output file not found: {output_path}"
 
 
-def test_batch_multi_pdf_produces_output(test_pdf_path, tmp_path):
+def test_batch_multi_pdf_produces_output(test_pdf_path, tmp_path, tk_root):
     """Running worker with two PDF inputs produces combined output workbook with data rows."""
     import threading
-    import tkinter as tk
     from config_loader import load_settings
     from main import OCRApp
     import openpyxl
@@ -324,41 +299,36 @@ def test_batch_multi_pdf_produces_output(test_pdf_path, tmp_path):
     settings = load_settings()
     settings["output_dir"] = str(tmp_path)  # redirect output to tmp
 
-    root = tk.Tk()
-    root.withdraw()
-    try:
-        app = OCRApp(root, settings)
-        app._files = [test_pdf_path, test_pdf_path]  # two copies = 60 pages
+    app = OCRApp(tk_root, settings)
+    app._files = [test_pdf_path, test_pdf_path]  # two copies = 60 pages
 
-        t = threading.Thread(target=app._worker, daemon=True)
-        t.start()
-        t.join(timeout=1200)  # 60 pages * ~14-20s each on this machine
+    t = threading.Thread(target=app._worker, daemon=True)
+    t.start()
+    t.join(timeout=1200)  # 60 pages * ~14-20s each on this machine
 
-        assert not t.is_alive(), "Worker thread timed out after 1200s"
+    assert not t.is_alive(), "Worker thread timed out after 1200s"
 
-        # Drain queue to find output path
-        messages = []
-        while not app._queue.empty():
-            messages.append(app._queue.get_nowait())
+    # Drain queue to find output path
+    messages = []
+    while not app._queue.empty():
+        messages.append(app._queue.get_nowait())
 
-        done_msgs = [m for m in messages if m[0] == "done"]
-        assert done_msgs, "No 'done' message received"
-        # done message: ("done", output_path, error_count)
-        _, output_path, error_count = done_msgs[0]
-        assert output_path and os.path.exists(output_path), \
-            f"Output file not found: {output_path}"
+    done_msgs = [m for m in messages if m[0] == "done"]
+    assert done_msgs, "No 'done' message received"
+    # done message: ("done", output_path, error_count)
+    _, output_path, error_count = done_msgs[0]
+    assert output_path and os.path.exists(output_path), \
+        f"Output file not found: {output_path}"
 
-        # Verify workbook has rows
-        wb = openpyxl.load_workbook(output_path)
-        assert "CMS-1500" in wb.sheetnames
-        assert "UB-04" in wb.sheetnames
-        cms_rows = wb["CMS-1500"].max_row
-        ub_rows = wb["UB-04"].max_row
-        # Header row counts as 1, so data rows = max_row - 1
-        assert cms_rows > 1, f"CMS-1500 sheet has no data rows (max_row={cms_rows})"
-        assert ub_rows > 1, f"UB-04 sheet has no data rows (max_row={ub_rows})"
-        # Two copies of test.pdf give ~54 CMS-1500 pages and ~6 UB-04 pages
-        # (minus UNKNOWN-classified pages); floor of 2 rows to be resilient to classifier variation
-        assert cms_rows >= 2, f"Expected >=1 CMS-1500 data rows, got {cms_rows - 1}"
-    finally:
-        root.destroy()
+    # Verify workbook has rows
+    wb = openpyxl.load_workbook(output_path)
+    assert "CMS-1500" in wb.sheetnames
+    assert "UB-04" in wb.sheetnames
+    cms_rows = wb["CMS-1500"].max_row
+    ub_rows = wb["UB-04"].max_row
+    # Header row counts as 1, so data rows = max_row - 1
+    assert cms_rows > 1, f"CMS-1500 sheet has no data rows (max_row={cms_rows})"
+    assert ub_rows > 1, f"UB-04 sheet has no data rows (max_row={ub_rows})"
+    # Two copies of test.pdf give ~54 CMS-1500 pages and ~6 UB-04 pages
+    # (minus UNKNOWN-classified pages); floor of 2 rows to be resilient to classifier variation
+    assert cms_rows >= 2, f"Expected >=1 CMS-1500 data rows, got {cms_rows - 1}"
