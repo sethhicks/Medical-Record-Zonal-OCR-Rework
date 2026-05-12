@@ -78,14 +78,14 @@ def test_two_sheets_named_correctly(tmp_path):
 
 
 def test_cms1500_column_count(tmp_path):
-    """CMS-1500 sheet has exactly 89 columns (one per FieldResult) (OUT-02)."""
+    """CMS-1500 sheet has exactly 16 columns (one per FieldResult) (OUT-02)."""
     import openpyxl
     from pipeline import write_workbook
-    from config.cms1500 import CMS1500_FIELDS, CMS1500_TABLE_FIELDS
-    field_names = [fd.name for fd in CMS1500_FIELDS]
-    for tfd in CMS1500_TABLE_FIELDS:
-        for row in range(1, len(tfd.row_boxes) + 1):
-            field_names.append(f"{tfd.name}_sl{row}")
+    field_names = (
+        ["patient_last_name", "patient_first_name", "patient_dob", "total_charge"]
+        + [f"date_of_service_sl{i}" for i in range(1, 7)]
+        + [f"cpt_code_sl{i}" for i in range(1, 7)]
+    )
     results = _make_results(field_names)
     result = write_workbook(
         cms_pages=[results],
@@ -94,18 +94,17 @@ def test_cms1500_column_count(tmp_path):
     )
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
-    assert ws.max_column == 89
+    assert ws.max_column == 16
 
 
 def test_ub04_column_count(tmp_path):
-    """UB-04 sheet has exactly 178 columns (one per FieldResult) (OUT-02)."""
+    """UB-04 sheet has exactly 26 columns (one per FieldResult) (OUT-02)."""
     import openpyxl
     from pipeline import write_workbook
-    from config.ub04 import UB04_FIELDS, UB04_TABLE_FIELDS
-    field_names = [fd.name for fd in UB04_FIELDS]
-    for tfd in UB04_TABLE_FIELDS:
-        for row in range(1, len(tfd.row_boxes) + 1):
-            field_names.append(f"{tfd.name}_rl{row}")
+    field_names = (
+        ["patient_last_name", "patient_first_name", "patient_dob", "total_charge"]
+        + [f"date_of_service_rl{i}" for i in range(1, 23)]
+    )
     results = _make_results(field_names)
     result = write_workbook(
         cms_pages=[[]],
@@ -114,7 +113,7 @@ def test_ub04_column_count(tmp_path):
     )
     wb = openpyxl.load_workbook(result)
     ws = wb["UB-04"]
-    assert ws.max_column == 178
+    assert ws.max_column == 26
 
 
 def test_cms1500_header_row_frozen(tmp_path):
@@ -136,9 +135,8 @@ def test_yellow_fill_below_threshold(tmp_path):
     import openpyxl
     from pipeline import write_workbook
     from config.cms1500 import CMS1500_FIELDS
-    # Find the label for box1_insurance_type to look it up in the header row
-    label = next(fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "box1_insurance_type")
-    results = _make_results(["box1_insurance_type"], value="X", confidence=10.0)
+    label = next(fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "total_charge")
+    results = _make_results(["total_charge"], value="150.00", confidence=10.0)
     result = write_workbook(
         cms_pages=[results],
         ub_pages=[[]],
@@ -146,7 +144,6 @@ def test_yellow_fill_below_threshold(tmp_path):
     )
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
-    # Find the data cell in row 2 for the field column (look up by label in header row)
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
     col_idx = header_row.index(label) + 1
     cell = ws.cell(2, col_idx)
@@ -159,9 +156,8 @@ def test_no_fill_above_threshold(tmp_path):
     import openpyxl
     from pipeline import write_workbook
     from config.cms1500 import CMS1500_FIELDS
-    # Find the label for box1_insurance_type to look it up in the header row
-    label = next(fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "box1_insurance_type")
-    results = _make_results(["box1_insurance_type"], value="X", confidence=90.0)
+    label = next(fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "total_charge")
+    results = _make_results(["total_charge"], value="150.00", confidence=90.0)
     result = write_workbook(
         cms_pages=[results],
         ub_pages=[[]],
@@ -172,7 +168,6 @@ def test_no_fill_above_threshold(tmp_path):
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
     col_idx = header_row.index(label) + 1
     cell = ws.cell(2, col_idx)
-    # Cell should not be yellow-filled
     fill = cell.fill
     assert fill is None or fill.fill_type == "none" or fill.fgColor.rgb != "FFFF00"
 
@@ -188,16 +183,15 @@ def test_import_write_workbook_from_pipeline():
     assert callable(write_workbook)
 
 
-def test_text_format_npi_column(tmp_path):
-    """NPI column cells use text format '@' to preserve leading zeros (OUT-05)."""
+def test_text_format_cpt_column(tmp_path):
+    """CPT code column cells use text format '@' to preserve values (OUT-05)."""
     import openpyxl
     from pipeline import write_workbook
-    from config.cms1500 import CMS1500_FIELDS
-    # Writer uses fd.label or fd.name as header (D-01) — look up label for NPI field
-    npi_label = next(
-        fd.label or fd.name for fd in CMS1500_FIELDS if fd.name == "box17b_referring_npi"
-    )
-    results = _make_results(["box17b_referring_npi"], value="0123456789", confidence=95.0)
+    from config.cms1500 import CMS1500_TABLE_FIELDS
+    # Writer uses "{tfd.label or tfd.name} SL{N}" as header (D-02/D-04)
+    cpt_tfd = next(tfd for tfd in CMS1500_TABLE_FIELDS if tfd.name == "cpt_code")
+    cpt_sl1_header = f"{cpt_tfd.label or cpt_tfd.name} SL1"
+    results = _make_results(["cpt_code_sl1"], value="99213", confidence=95.0)
     result = write_workbook(
         cms_pages=[results],
         ub_pages=[[]],
@@ -206,7 +200,7 @@ def test_text_format_npi_column(tmp_path):
     wb = openpyxl.load_workbook(result)
     ws = wb["CMS-1500"]
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
-    col_idx = header_row.index(npi_label) + 1
+    col_idx = header_row.index(cpt_sl1_header) + 1
     cell = ws.cell(2, col_idx)
     assert cell.number_format == "@"
 
@@ -216,10 +210,10 @@ def test_text_format_date_column(tmp_path):
     import openpyxl
     from pipeline import write_workbook
     from config.cms1500 import CMS1500_TABLE_FIELDS
-    # Writer uses "{tfd.label or tfd.name} SL{N}" as header (D-02/D-04) — look up SL1 header
-    date_tfd = next(tfd for tfd in CMS1500_TABLE_FIELDS if tfd.name == "box24_date_from")
+    # Writer uses "{tfd.label or tfd.name} SL{N}" as header (D-02/D-04)
+    date_tfd = next(tfd for tfd in CMS1500_TABLE_FIELDS if tfd.name == "date_of_service")
     date_sl1_header = f"{date_tfd.label or date_tfd.name} SL1"
-    results = _make_results(["box24_date_from_sl1"], value="01/01/2024", confidence=95.0)
+    results = _make_results(["date_of_service_sl1"], value="01/01/2024", confidence=95.0)
     result = write_workbook(
         cms_pages=[results],
         ub_pages=[[]],

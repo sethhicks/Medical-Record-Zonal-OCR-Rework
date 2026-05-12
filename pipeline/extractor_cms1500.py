@@ -27,8 +27,9 @@ from config.cms1500 import CMS1500_FIELDS, CMS1500_TABLE_FIELDS
 from models.field_result import FieldResult
 
 # X boundaries (in original image coordinates) that separate MM / DD / YY
-# within the Box 24 date strip.  Dividers between sub-cells land at x≈107 and x≈165.
-_DATE_DD_START = 107
+# within the Box 24 date strip.  Calibrated against p0/p1/p19 with PSM 8 sub-crops:
+# divider between MM and DD lands at x≈120; YY right edge captured to x≈260.
+_DATE_DD_START = 120
 _DATE_YY_START = 165
 
 
@@ -64,60 +65,45 @@ def _ocr_region(
         return "", -1.0   # D-11: error path sentinel
 
 
-def _ocr_service_date(crop: Image.Image, box_left: int) -> tuple[str, float]:
-    """OCR a Box 24 date strip and reconstruct 'MM/DD/YY' from per-word x positions.
+def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tuple[str, float]:
+    """OCR a Box 24 date by reading MM, DD, YY sub-cells as three separate crops.
 
-    Box 24A 'From' date is printed in three separate sub-cells (MM, DD, YY) separated
-    by vertical dividers.  Tesseract reads them as space-separated tokens.  This
-    function assigns each digit token to its sub-cell by x position, then joins them.
+    Box 24A 'From' date is printed in three sub-cells separated by vertical dividers at
+    x≈107 and x≈165 (original image coordinates).  Reading each sub-cell independently
+    with PSM 8 avoids Tesseract merging adjacent cells into a single token.
 
-    Returns ("", -1.0) if no digit tokens are found.
+    Returns ("", -1.0) if all sub-cells are blank.
     """
-    config = "--psm 6 -c tessedit_char_whitelist=0123456789"
-    try:
-        d = pytesseract.image_to_data(crop, config=config, output_type=pytesseract.Output.DICT)
-        lefts = d.get("left", [0] * len(d["text"]))
-    except Exception:
-        return "", -1.0
+    left, top, right, bottom = box
+    sub_boxes = [
+        (left,          top, _DATE_DD_START, bottom),  # MM
+        (_DATE_DD_START, top, _DATE_YY_START, bottom),  # DD
+        (_DATE_YY_START, top, right,          bottom),  # YY
+    ]
+    parts: list[str] = []
+    confs: list[float] = []
+    for sub_box in sub_boxes:
+        sub_crop = image.crop(sub_box)
+        val, conf = _ocr_region(sub_crop, psm=8, whitelist="0123456789")
+        parts.append(val.strip())
+        if conf >= 0:
+            confs.append(conf)
 
-    mm_parts: list[str] = []
-    dd_parts: list[str] = []
-    yy_parts: list[str] = []
-    confs: list[int] = []
-    for txt, conf, left in zip(d["text"], d["conf"], lefts):
-        if int(conf) < 0 or not txt.strip().isdigit():
-            continue
-        orig_x = box_left + left  # convert crop-relative x to original image x
-        confs.append(int(conf))
-        if orig_x < _DATE_DD_START:
-            mm_parts.append(txt.strip())
-        elif orig_x < _DATE_YY_START:
-            dd_parts.append(txt.strip())
-        else:
-            yy_parts.append(txt.strip())
+    mm, dd, yy = parts
 
-    mm = "".join(mm_parts)
-    dd = "".join(dd_parts)
-    yy = "".join(yy_parts)
+    # Row-number column bleeds past x=55 on some scans, prepending an extra '1' to MM.
+    # Strip it when the resulting value would be an impossible month.
+    if mm and len(mm) > 2 and int(mm) > 12:
+        mm = mm[1:]  # "112" → "12"
 
-    # If x-position bucketing produced a valid 3-part date, use it
     if mm and dd and yy:
-        return f"{mm}/{dd}/{yy}", float(min(confs))
+        return f"{mm}/{dd}/{yy}", min(confs) if confs else -1.0
 
-    # Fallback: join all digit tokens in order and split by digit-count
-    all_digits = mm + dd + yy
-    if not all_digits:
-        return "", -1.0
-    n = len(all_digits)
-    if n == 6:
-        value = f"{all_digits[:2]}/{all_digits[2:4]}/{all_digits[4:]}"
-    elif n == 4:
-        value = f"{all_digits[:2]}/{all_digits[2:]}"
-    else:
-        # Return what we have — partial date
-        parts = [p for p in [mm, dd, yy] if p]
-        value = "/".join(parts) if len(parts) > 1 else all_digits
-    return value, float(min(confs))
+    # Partial fallback: return whatever sub-cells we got
+    non_empty = [p for p in [mm, dd, yy] if p]
+    if non_empty:
+        return "/".join(non_empty), min(confs) if confs else -1.0
+    return "", -1.0
 
 
 def _extract_from_name_band(ocr_text: str) -> tuple[str, str, str]:
@@ -168,6 +154,10 @@ def extract_cms1500(image: Image.Image, settings: dict) -> list[FieldResult]:
             results.append(FieldResult(field_name="patient_last_name",  value=last,  confidence=conf))
             results.append(FieldResult(field_name="patient_first_name", value=first, confidence=conf))
             results.append(FieldResult(field_name="patient_dob",        value=dob,   confidence=conf))
+        elif fd.name == "total_charge":
+            # Take only the first numeric token — adjacent column bleed adds trailing noise
+            clean = value.split()[0] if value else ""
+            results.append(FieldResult(field_name=fd.name, value=clean, confidence=conf))
         else:
             results.append(FieldResult(field_name=fd.name, value=value, confidence=conf))
 
@@ -175,10 +165,10 @@ def extract_cms1500(image: Image.Image, settings: dict) -> list[FieldResult]:
     for tfd in CMS1500_TABLE_FIELDS:
         for i, box in enumerate(tfd.row_boxes):
             field_name = f"{tfd.name}_sl{i + 1}"
-            crop = image.crop(box)
             if tfd.name == "date_of_service":
-                value, conf = _ocr_service_date(crop, box[0])
+                value, conf = _ocr_service_date(image, box)
             else:
+                crop = image.crop(box)
                 value, conf = _ocr_region(crop, tfd.psm, tfd.whitelist)
             results.append(FieldResult(field_name=field_name, value=value, confidence=conf))
 
