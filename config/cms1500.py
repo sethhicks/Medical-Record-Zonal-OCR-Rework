@@ -16,8 +16,8 @@ from config.base import FieldDef, TableFieldDef  # noqa: F401
 # ---------------------------------------------------------------------------
 
 CMS1500_FIELDS: list[FieldDef] = [
-    FieldDef(name="patient_name", box=(30, 530, 1270, 640), psm=11, whitelist=None,             label="Box 2 — Patient Name + DOB row (wide PSM-11 scan)"),
-    FieldDef(name="total_charge", box=(1580, 2800, 1980, 2870), psm=7,  whitelist="0123456789. ", label="Box 28 — Total Charge"),
+    FieldDef(name="patient_name", box=(70, 540, 920, 610), psm=6, whitelist=None,             label="Box 2 — Patient Name row"),
+    FieldDef(name="total_charge", box=(1590, 2800, 1850, 2860), psm=7,  whitelist="0123456789. ", label="Box 28 — Total Charge"),
 ]
 
 
@@ -30,7 +30,7 @@ CMS1500_TABLE_FIELDS: list[TableFieldDef] = [
     TableFieldDef(
         name="date_of_service",
         row_boxes=[
-            (55, 2185, 210, 2272),  # SL1 only
+            (60, 2185, 320, 2280),  # SL1 only
         ],
         psm=7,
         whitelist="0123456789/ ",

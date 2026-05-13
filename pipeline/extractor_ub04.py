@@ -4,17 +4,17 @@
 Public API:
     extract_ub04(image, settings) -> list[FieldResult]
         Extracts billing-critical UB-04 fields from a preprocessed PIL Image.
-        Returns 4 FieldResult entries:
-          - patient_last_name, patient_first_name  (split from Box 8 wide scan)
-          - total_charge                           (EST. Amount Due row)
-          - date_of_service_rl1                    (first revenue line service date)
+        Returns 3 FieldResult entries:
+          - patient_name       (Box 8 wide scan, "Last, First" combined)
+          - total_charge       (EST. Amount Due row)
+          - date_of_service_rl1 (first revenue line service date)
 
         Args:
             image: Preprocessed PIL Image from preprocess_page() — mode 'RGB', 2550x3300 px.
             settings: Settings dict from load_settings(); must contain 'tesseract_cmd'.
 
         Returns:
-            Flat list[FieldResult] — always 4 entries, blank fields have value='' confidence=-1.0.
+            Flat list[FieldResult] — always 3 entries, blank fields have value='' confidence=-1.0.
 """
 import re
 from typing import Optional
@@ -58,24 +58,31 @@ def _ocr_region(
         return "", -1.0   # D-11: error path sentinel
 
 
-def _extract_name_from_band(ocr_text: str) -> tuple[str, str]:
-    """Extract (last_name, first_name) from a wide PSM-11 OCR scan of the name row.
+def _extract_name_from_band(ocr_text: str) -> str:
+    """Extract patient name from the OCR scan of the name row.
 
-    Strategy 1: take the LAST strict 'Last, First' regex match to skip form labels.
-    Strategy 2 (fallback): comma-split — first word before comma is last name, first
-      word after comma is first name.  Handles 'Furcotte, S hown' where the space
-      inside the first name breaks the strict regex.
+    Tries three strategies in order, taking the LAST match to skip form-label text:
+      1. 'Last, First' with comma (clean read)
+      2. 'Last. First' with period (OCR misreads comma as period)
+      3. Last capitalised word pair on the last non-empty line (no-punctuation fallback)
     """
-    matches = list(re.finditer(r'\b([A-Z][a-z]+),\s*([A-Z][a-z]+)\b', ocr_text))
-    if matches:
-        m = matches[-1]
-        return m.group(1), m.group(2)
-    # Fallback: find the last capitalized-word,word pair separated by comma
-    comma_matches = list(re.finditer(r'\b([A-Z][a-z]+),\s*([A-Z]\w*)', ocr_text))
-    if comma_matches:
-        m = comma_matches[-1]
-        return m.group(1), m.group(2)
-    return "", ""
+    # Strategy 1: comma separator
+    m = list(re.finditer(r'\b([A-Z][a-z]+),\s*([A-Z][a-z]+)\b', ocr_text))
+    if m:
+        g = m[-1]
+        return f"{g.group(1)}, {g.group(2)}"
+    # Strategy 2: period OCR noise instead of comma
+    m = list(re.finditer(r'\b([A-Z][a-z]+)\.\s*([A-Z][a-z]+)\b', ocr_text))
+    if m:
+        g = m[-1]
+        return f"{g.group(1)}, {g.group(2)}"
+    # Strategy 3: last line with two capitalised words
+    for line in reversed(ocr_text.splitlines()):
+        line = line.strip()
+        words = re.findall(r'\b[A-Z][a-z]+\b', line)
+        if len(words) >= 2:
+            return f"{words[0]}, {words[1]}"
+    return ""
 
 
 def extract_ub04(image: Image.Image, settings: dict) -> list[FieldResult]:
@@ -86,24 +93,21 @@ def extract_ub04(image: Image.Image, settings: dict) -> list[FieldResult]:
         settings: Dict from load_settings(); must contain 'tesseract_cmd' key.
 
     Returns:
-        Flat list[FieldResult] with exactly 26 entries.
+        Flat list[FieldResult] with exactly 3 entries.
     """
     pytesseract.pytesseract.tesseract_cmd = settings["tesseract_cmd"]  # Windows required
 
     results: list[FieldResult] = []
 
-    # Single-value fields — patient_name expands to two results via regex parsing
     for fd in UB04_FIELDS:
         crop = image.crop(fd.box)
         value, conf = _ocr_region(crop, fd.psm, fd.whitelist)
         if fd.name == "patient_name":
-            last, first = _extract_name_from_band(value)
-            results.append(FieldResult(field_name="patient_last_name",  value=last,  confidence=conf))
-            results.append(FieldResult(field_name="patient_first_name", value=first, confidence=conf))
+            name = _extract_name_from_band(value)
+            results.append(FieldResult(field_name="patient_name", value=name, confidence=conf))
         else:
             results.append(FieldResult(field_name=fd.name, value=value, confidence=conf))
 
-    # Table fields: date_of_service × 22 = 22 entries
     for tfd in UB04_TABLE_FIELDS:
         for i, box in enumerate(tfd.row_boxes):
             field_name = f"{tfd.name}_rl{i + 1}"
@@ -111,4 +115,4 @@ def extract_ub04(image: Image.Image, settings: dict) -> list[FieldResult]:
             value, conf = _ocr_region(crop, tfd.psm, tfd.whitelist)
             results.append(FieldResult(field_name=field_name, value=value, confidence=conf))
 
-    return results  # always 4 entries: 3 single + 1 table
+    return results  # 3 entries: patient_name, total_charge, date_of_service_rl1

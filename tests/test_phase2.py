@@ -184,14 +184,14 @@ def test_ub04_fields_populated():
 
 
 def test_cms1500_table_fields_row_count():
-    """Each TableFieldDef in CMS1500_TABLE_FIELDS has exactly 6 row_boxes."""
+    """Each TableFieldDef in CMS1500_TABLE_FIELDS has exactly 1 row_box (SL1 only)."""
     from config.cms1500 import CMS1500_TABLE_FIELDS
     assert len(CMS1500_TABLE_FIELDS) > 0
-    assert all(len(f.row_boxes) == 6 for f in CMS1500_TABLE_FIELDS)
+    assert all(len(f.row_boxes) == 1 for f in CMS1500_TABLE_FIELDS)
 
 
 def test_ub04_table_fields_row_count():
-    """Each TableFieldDef in UB04_TABLE_FIELDS has exactly 22 row_boxes."""
+    """Each TableFieldDef in UB04_TABLE_FIELDS has exactly 1 row_box (RL1 only)."""
     from config.ub04 import UB04_TABLE_FIELDS
     assert len(UB04_TABLE_FIELDS) > 0
-    assert all(len(f.row_boxes) == 22 for f in UB04_TABLE_FIELDS)
+    assert all(len(f.row_boxes) == 1 for f in UB04_TABLE_FIELDS)

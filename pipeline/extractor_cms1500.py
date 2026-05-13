@@ -4,17 +4,17 @@
 Public API:
     extract_cms1500(image, settings) -> list[FieldResult]
         Extracts billing-critical CMS-1500 fields from a preprocessed PIL Image.
-        Returns 4 FieldResult entries:
-          - patient_last_name, patient_first_name  (parsed from Box 2 wide scan)
-          - total_charge                            (Box 28)
-          - date_of_service_sl1                    (Box 24 first service line date)
+        Returns 3 FieldResult entries:
+          - patient_name        (Box 2 wide scan, "Last, First" combined)
+          - total_charge        (Box 28)
+          - date_of_service_sl1 (Box 24 first service line date)
 
         Args:
             image: Preprocessed PIL Image from preprocess_page() — mode 'RGB', 2550x3300 px.
             settings: Settings dict from load_settings(); must contain 'tesseract_cmd'.
 
         Returns:
-            Flat list[FieldResult] with exactly 4 entries.
+            Flat list[FieldResult] with exactly 3 entries.
 """
 import re
 from typing import Optional
@@ -25,11 +25,11 @@ from PIL import Image
 from config.cms1500 import CMS1500_FIELDS, CMS1500_TABLE_FIELDS
 from models.field_result import FieldResult
 
-# X boundaries (in original image coordinates) that separate MM / DD / YY
-# within the Box 24 date strip.  Calibrated against p0/p1/p19 with PSM 8 sub-crops:
-# divider between MM and DD lands at x≈120; YY right edge captured to x≈260.
-_DATE_DD_START = 120
-_DATE_YY_START = 165
+# Sub-cell widths (in pixels) relative to the date box's LEFT edge.
+# MM cell is _DATE_MM_WIDTH px wide; DD cell is _DATE_DD_WIDTH px wide; YY takes the rest.
+# Calibrated via OCR sweep on real test.pdf pages (p0/p1/p19) against zone (85,2200,340,2300).
+_DATE_MM_WIDTH = 75   # MM: left → left+75
+_DATE_DD_WIDTH = 60   # DD: left+75 → left+135
 
 
 def _ocr_region(
@@ -74,10 +74,12 @@ def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tup
     Returns ("", -1.0) if all sub-cells are blank.
     """
     left, top, right, bottom = box
+    mm_end = left + _DATE_MM_WIDTH
+    dd_end = mm_end + _DATE_DD_WIDTH
     sub_boxes = [
-        (left,          top, _DATE_DD_START, bottom),  # MM
-        (_DATE_DD_START, top, _DATE_YY_START, bottom),  # DD
-        (_DATE_YY_START, top, right,          bottom),  # YY
+        (left,   top, mm_end, bottom),  # MM
+        (mm_end, top, dd_end, bottom),  # DD
+        (dd_end, top, right,  bottom),  # YY
     ]
     parts: list[str] = []
     confs: list[float] = []
@@ -105,17 +107,31 @@ def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tup
     return "", -1.0
 
 
-def _extract_from_name_band(ocr_text: str) -> tuple[str, str]:
-    """Parse last_name, first_name from a wide PSM-11 OCR scan of the name row.
+def _extract_from_name_band(ocr_text: str) -> str:
+    """Extract patient name from the OCR scan of the name row.
 
-    Takes the LAST 'Last, First' match to skip form-label text that appears before
-    the real patient data (e.g. 'Last Name, First Name' printed on the form).
+    Tries three strategies in order, taking the LAST match to skip form-label text:
+      1. 'Last, First' with comma (clean read)
+      2. 'Last. First' with period (OCR misreads comma as period)
+      3. Last capitalised word on the last non-empty line (fallback for no-punctuation reads)
     """
-    name_matches = list(re.finditer(r'\b([A-Z][a-z]+),\s*([A-Z][a-z]+)\b', ocr_text))
-    if name_matches:
-        m = name_matches[-1]
-        return m.group(1), m.group(2)
-    return "", ""
+    # Strategy 1: comma separator
+    m = list(re.finditer(r'\b([A-Z][a-z]+),\s*([A-Z][a-z]+)\b', ocr_text))
+    if m:
+        g = m[-1]
+        return f"{g.group(1)}, {g.group(2)}"
+    # Strategy 2: period OCR noise instead of comma
+    m = list(re.finditer(r'\b([A-Z][a-z]+)\.\s*([A-Z][a-z]+)\b', ocr_text))
+    if m:
+        g = m[-1]
+        return f"{g.group(1)}, {g.group(2)}"
+    # Strategy 3: last line with two capitalised words (no punctuation between them)
+    for line in reversed(ocr_text.splitlines()):
+        line = line.strip()
+        words = re.findall(r'\b[A-Z][a-z]+\b', line)
+        if len(words) >= 2:
+            return f"{words[0]}, {words[1]}"
+    return ""
 
 
 def extract_cms1500(image: Image.Image, settings: dict) -> list[FieldResult]:
@@ -126,20 +142,18 @@ def extract_cms1500(image: Image.Image, settings: dict) -> list[FieldResult]:
         settings: Dict from load_settings(); must contain 'tesseract_cmd' key.
 
     Returns:
-        Flat list[FieldResult] with exactly 9 entries.
+        Flat list[FieldResult] with exactly 3 entries.
     """
     pytesseract.pytesseract.tesseract_cmd = settings["tesseract_cmd"]  # Windows required
 
     results: list[FieldResult] = []
 
-    # Single-value fields — patient_name expands to two results via regex parsing
     for fd in CMS1500_FIELDS:
         crop = image.crop(fd.box)
         value, conf = _ocr_region(crop, fd.psm, fd.whitelist)
         if fd.name == "patient_name":
-            last, first = _extract_from_name_band(value)
-            results.append(FieldResult(field_name="patient_last_name",  value=last,  confidence=conf))
-            results.append(FieldResult(field_name="patient_first_name", value=first, confidence=conf))
+            name = _extract_from_name_band(value)
+            results.append(FieldResult(field_name="patient_name", value=name, confidence=conf))
         elif fd.name == "total_charge":
             # Take only the first numeric token — adjacent column bleed adds trailing noise
             clean = value.split()[0] if value else ""
@@ -147,7 +161,6 @@ def extract_cms1500(image: Image.Image, settings: dict) -> list[FieldResult]:
         else:
             results.append(FieldResult(field_name=fd.name, value=value, confidence=conf))
 
-    # Table fields: date_of_service × 6 + cpt_code × 6 = 12 entries
     for tfd in CMS1500_TABLE_FIELDS:
         for i, box in enumerate(tfd.row_boxes):
             field_name = f"{tfd.name}_sl{i + 1}"
@@ -158,4 +171,4 @@ def extract_cms1500(image: Image.Image, settings: dict) -> list[FieldResult]:
                 value, conf = _ocr_region(crop, tfd.psm, tfd.whitelist)
             results.append(FieldResult(field_name=field_name, value=value, confidence=conf))
 
-    return results  # always 4 entries: 3 single + 1 table
+    return results  # 3 entries: patient_name, total_charge, date_of_service_sl1

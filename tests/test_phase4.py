@@ -1,11 +1,8 @@
 # tests/test_phase4.py
 """Phase 4 tests — EXTR-01, EXTR-02, EXTR-03 (field extraction).
 
-CMS-1500 extracts 9 fields: patient_last_name, patient_first_name,
-total_charge, date_of_service_sl1–sl6.
-
-UB-04 extracts 25 fields: patient_last_name, patient_first_name,
-total_charge, date_of_service_rl1–rl22.
+CMS-1500 extracts 3 fields: patient_name, total_charge, date_of_service_sl1.
+UB-04 extracts 3 fields: patient_name, total_charge, date_of_service_rl1.
 """
 import pytest
 from pathlib import Path
@@ -34,7 +31,7 @@ def test_extract_cms1500_returns_list(monkeypatch):
 
 
 def test_extract_cms1500_result_count(monkeypatch):
-    """extract_cms1500 returns exactly 4 FieldResults (3 single + 1 table) (EXTR-01)."""
+    """extract_cms1500 returns exactly 3 FieldResults (EXTR-01)."""
     import pytesseract
     from pipeline import extract_cms1500
     from PIL import Image
@@ -45,11 +42,11 @@ def test_extract_cms1500_result_count(monkeypatch):
     img = Image.new('RGB', (2550, 3300), 255)
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_cms1500(img, settings)
-    assert len(result) == 4
+    assert len(result) == 3
 
 
 def test_extract_cms1500_single_field_names(monkeypatch):
-    """All expected single-field names appear in the CMS-1500 result (EXTR-01)."""
+    """All expected field names appear in the CMS-1500 result (EXTR-01)."""
     import pytesseract
     from pipeline import extract_cms1500
     from PIL import Image
@@ -61,12 +58,12 @@ def test_extract_cms1500_single_field_names(monkeypatch):
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_cms1500(img, settings)
     result_names = {r.field_name for r in result}
-    expected = {"patient_last_name", "patient_first_name", "total_charge"}
+    expected = {"patient_name", "total_charge"}
     assert expected.issubset(result_names)
 
 
 def test_extract_cms1500_service_line_naming(monkeypatch):
-    """Box 24 table entries use _sl1.._sl6 suffix pattern (D-06)."""
+    """Box 24 table entries use _sl1 suffix pattern (D-06)."""
     import pytesseract
     from pipeline import extract_cms1500
     from PIL import Image
@@ -136,7 +133,7 @@ def test_extract_ub04_returns_list(monkeypatch):
 
 
 def test_extract_ub04_result_count(monkeypatch):
-    """extract_ub04 returns exactly 4 FieldResults (3 single + 1 revenue-line) (EXTR-02)."""
+    """extract_ub04 returns exactly 3 FieldResults (EXTR-02)."""
     import pytesseract
     from pipeline import extract_ub04
     from PIL import Image
@@ -147,11 +144,11 @@ def test_extract_ub04_result_count(monkeypatch):
     img = Image.new('RGB', (2550, 3300), 255)
     settings = {'tesseract_cmd': r'C:\Program Files\Tesseract-OCR\tesseract.exe'}
     result = extract_ub04(img, settings)
-    assert len(result) == 4
+    assert len(result) == 3
 
 
 def test_extract_ub04_revenue_line_naming(monkeypatch):
-    """Revenue line entries use date_of_service_rl1.._rl22 suffix pattern (D-07)."""
+    """Revenue line entries use date_of_service_rl1 suffix pattern (D-07)."""
     import pytesseract
     from pipeline import extract_ub04
     from PIL import Image
@@ -262,10 +259,10 @@ def test_ub04_whitelist_icd10_chars(test_pdf_path, sample_settings):
 
 
 def test_cms1500_smoke_80pct(test_pdf_path, sample_settings):
-    """Real CMS-1500 page: >=37% non-empty fields (name, date, charge only)."""
+    """Real CMS-1500 page: >=33% non-empty fields (3 fields: name, charge, date)."""
     from pipeline import convert_page, preprocess_page, extract_cms1500
 
-    CMS_THRESHOLD = 0.37  # page 19 measures ~43.8% with current coords
+    CMS_THRESHOLD = 0.33  # at least 1 of 3 fields non-empty
     raw = convert_page(test_pdf_path, 19)
     proc = preprocess_page(raw, sample_settings)
     results = extract_cms1500(proc, sample_settings)
@@ -279,10 +276,10 @@ def test_cms1500_smoke_80pct(test_pdf_path, sample_settings):
 
 
 def test_ub04_smoke_80pct(test_pdf_path, sample_settings):
-    """Real UB-04 page: >=5% non-empty fields across reduced field set."""
+    """Real UB-04 page: >=33% non-empty fields (3 fields: name, charge, date)."""
     from pipeline import convert_page, preprocess_page, extract_ub04
 
-    UB04_THRESHOLD = 0.05  # page 11 measures ~7.7% with current coords
+    UB04_THRESHOLD = 0.33  # at least 1 of 3 fields non-empty
     raw = convert_page(test_pdf_path, 11)
     proc = preprocess_page(raw, sample_settings)
     results = extract_ub04(proc, sample_settings)

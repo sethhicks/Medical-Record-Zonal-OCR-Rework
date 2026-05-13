@@ -18,8 +18,8 @@ from config.base import FieldDef, TableFieldDef  # noqa: F401
 # ---------------------------------------------------------------------------
 
 UB04_FIELDS: list[FieldDef] = [
-    FieldDef(name="patient_name", box=(30,  230, 1270,  360), psm=11, whitelist=None,             label="Box 8 — Patient Name (wide PSM-11 scan)"),
-    FieldDef(name="total_charge", box=(1700, 2060, 2300, 2150), psm=7,  whitelist="0123456789. ", label="EST. Amount Due row — Total Charges proxy"),
+    FieldDef(name="patient_name", box=(80, 320, 930, 370), psm=6,  whitelist=None,             label="Box 8 — Patient Name row"),
+    FieldDef(name="total_charge", box=(1830, 2005, 2130, 2060), psm=7,  whitelist="0123456789. ", label="EST. Amount Due row — Total Charges proxy"),
 ]
 
 
@@ -33,7 +33,7 @@ UB04_TABLE_FIELDS: list[TableFieldDef] = [
     TableFieldDef(
         name="date_of_service",
         row_boxes=[
-            (1000, 860, 1270, 907),  # RL1 only
+            (390, 420, 570, 465),  # RL1 only
         ],
         psm=7,
         whitelist="0123456789/ ",
