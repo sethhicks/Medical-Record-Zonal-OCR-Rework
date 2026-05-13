@@ -167,7 +167,7 @@ def test_worker_unknown_page_posts_error(tmp_path):
 
     # Pre-create the workbook so the post-process step can open it
     wb_pre = openpyxl.Workbook()
-    ws_pre = wb_pre.create_sheet("CMS-1500")
+    ws_pre = wb_pre.create_sheet("Results")
     ws_pre.cell(row=1, column=1, value="some_field")
     wb_pre.remove(wb_pre.active)  # remove default Sheet
     wb_pre.save(str(tmp_path / "extracted_results.xlsx"))
@@ -207,13 +207,13 @@ def test_worker_unknown_page_posts_error(tmp_path):
     assert len(done_msgs) == 1
     assert done_msgs[0][2] >= 1  # error_count
 
-    # Verify extraction_error column was appended to CMS-1500 sheet (D-14 / SC-5)
+    # Verify extraction_error column was appended to Results sheet (D-14 / SC-5)
     output_xlsx = str(tmp_path / "extracted_results.xlsx")
     wb = openpyxl.load_workbook(output_xlsx)
-    ws = wb["CMS-1500"]
+    ws = wb["Results"]
     header_row = [ws.cell(row=1, column=c).value for c in range(1, ws.max_column + 1)]
     assert "extraction_error" in header_row, \
-        f"extraction_error column not found in CMS-1500 headers: {header_row}"
+        f"extraction_error column not found in Results headers: {header_row}"
     err_col = header_row.index("extraction_error") + 1
     # There should be at least one data row with a non-empty extraction_error value
     data_values = [ws.cell(row=r, column=err_col).value
@@ -322,13 +322,9 @@ def test_batch_multi_pdf_produces_output(test_pdf_path, tmp_path, tk_root):
 
     # Verify workbook has rows
     wb = openpyxl.load_workbook(output_path)
-    assert "CMS-1500" in wb.sheetnames
-    assert "UB-04" in wb.sheetnames
-    cms_rows = wb["CMS-1500"].max_row
-    ub_rows = wb["UB-04"].max_row
-    # Header row counts as 1, so data rows = max_row - 1
-    assert cms_rows > 1, f"CMS-1500 sheet has no data rows (max_row={cms_rows})"
-    assert ub_rows > 1, f"UB-04 sheet has no data rows (max_row={ub_rows})"
-    # Two copies of test.pdf give ~54 CMS-1500 pages and ~6 UB-04 pages
-    # (minus UNKNOWN-classified pages); floor of 2 rows to be resilient to classifier variation
-    assert cms_rows >= 2, f"Expected >=1 CMS-1500 data rows, got {cms_rows - 1}"
+    assert "Results" in wb.sheetnames
+    total_rows = wb["Results"].max_row
+    # Header row counts as 1; two copies of test.pdf should yield many data rows
+    assert total_rows > 1, f"Results sheet has no data rows (max_row={total_rows})"
+    # Two copies of test.pdf = ~60 pages; expect well above 2 data rows
+    assert total_rows >= 2, f"Expected >=1 data rows, got {total_rows - 1}"

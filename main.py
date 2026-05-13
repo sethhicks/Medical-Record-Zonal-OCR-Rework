@@ -211,7 +211,7 @@ class OCRApp:
         if output_path and error_pages:
             try:
                 wb = _openpyxl.load_workbook(output_path)
-                ws = wb["CMS-1500"]
+                ws = wb["Results"]
                 # Find extraction_error column index (1-based) by scanning header row
                 header_row = [ws.cell(row=1, column=c).value
                               for c in range(1, ws.max_column + 1)]

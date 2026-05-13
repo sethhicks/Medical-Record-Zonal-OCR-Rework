@@ -40,30 +40,20 @@ def _needs_text_format(field_name: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Headers and column maps — 3 columns per sheet
+# Headers and column map — 3 columns, single "Results" sheet
+# Both CMS (date_of_service_sl1) and UB-04 (date_of_service_rl1) map to col 3.
 # ---------------------------------------------------------------------------
 
-def _cms_headers() -> list[str]:
+def _headers() -> list[str]:
     return ["Patient Name", "Total Charge", "Date of Service"]
 
 
-def _ub_headers() -> list[str]:
-    return ["Patient Name", "Total Charge", "Date of Service"]
-
-
-def _cms_col_map() -> dict[str, int]:
+def _col_map() -> dict[str, int]:
     return {
         "patient_name": 1,
         "total_charge": 2,
-        "date_of_service_sl1": 3,
-    }
-
-
-def _ub_col_map() -> dict[str, int]:
-    return {
-        "patient_name": 1,
-        "total_charge": 2,
-        "date_of_service_rl1": 3,
+        "date_of_service_sl1": 3,   # CMS-1500
+        "date_of_service_rl1": 3,   # UB-04
     }
 
 
@@ -88,10 +78,10 @@ def _write_sheet(
         result_map: dict[str, FieldResult] = {fr.field_name: fr for fr in page_results}
         for field_name, col_idx in col_map.items():
             fr = result_map.get(field_name)
-            value = fr.value if fr else ""
-            cell = ws.cell(row=row_idx, column=col_idx, value=value)
-            if _needs_text_format(field_name):
-                cell.number_format = "@"
+            if fr is not None:
+                cell = ws.cell(row=row_idx, column=col_idx, value=fr.value)
+                if _needs_text_format(field_name):
+                    cell.number_format = "@"
 
 
 # ---------------------------------------------------------------------------
@@ -105,9 +95,10 @@ def write_workbook(
 ) -> str:
     """Write extraction results to a formatted Excel workbook.
 
-    Creates 'extracted_results.xlsx' in settings['output_dir'] with two sheets:
-    'CMS-1500' and 'UB-04', each with 3 columns: Patient Name, Total Charge,
-    Date of Service. Header row frozen at A2, columns width 20.
+    Creates 'extracted_results.xlsx' in settings['output_dir'] with one sheet
+    'Results' containing 3 columns: Patient Name, Total Charge, Date of Service.
+    CMS-1500 and UB-04 pages are combined in order (CMS first, then UB-04).
+    Header row frozen at A2, columns width 20.
 
     Security note: output filename is hardcoded ('extracted_results.xlsx').
     Only the directory comes from settings — prevents path injection (T-05-02).
@@ -126,11 +117,9 @@ def write_workbook(
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
 
-    ws_cms = wb.create_sheet("CMS-1500")
-    _write_sheet(ws_cms, _cms_headers(), _cms_col_map(), cms_pages)
-
-    ws_ub = wb.create_sheet("UB-04")
-    _write_sheet(ws_ub, _ub_headers(), _ub_col_map(), ub_pages)
+    all_pages = list(cms_pages) + list(ub_pages)
+    ws_results = wb.create_sheet("Results")
+    _write_sheet(ws_results, _headers(), _col_map(), all_pages)
 
     wb.save(str(output_path))
     return str(output_path)

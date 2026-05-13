@@ -85,7 +85,8 @@ def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tup
     def _s1_try(crop):
         """Return (date_str, conf) on success or (None, digits_str) on failure."""
         raw = pytesseract.image_to_string(
-            crop, config="--dpi 300 --psm 8 -c tessedit_char_whitelist=0123456789"
+            crop,
+            config="--oem 1 --dpi 300 --psm 8 -c tessedit_char_whitelist=0123456789",
         ).strip()
         d = re.sub(r"\D", "", raw)
         # For 7-digit reads where first digit is '1', the row-number column likely bled in.
@@ -165,7 +166,8 @@ def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tup
         # Single sub-cell read with no slash separator — likely garbage.
         # Try PSM 6 on the full zone: it often sees text that PSM 8 misses.
         raw6 = pytesseract.image_to_string(
-            image.crop(box), config="--dpi 300 --psm 6"
+            image.crop(box),
+            config="--oem 1 --dpi 300 --psm 6 -c tessedit_char_whitelist=0123456789",
         ).strip()
         d6 = "".join(re.findall(r"\d+", raw6))
         if len(d6) >= 6:

@@ -58,6 +58,31 @@ def _ocr_region(
         return "", -1.0   # D-11: error path sentinel
 
 
+def _ocr_date_region(crop: Image.Image, psm: int) -> tuple[str, float]:
+    """OCR a date crop using LSTM-only engine (OEM 1) with digits-only whitelist.
+
+    OEM 1 (LSTM-only) is more accurate than the default combined engine (OEM 3)
+    for small numeric fields on degraded scans.
+    """
+    config = f"--oem 1 --psm {psm} --dpi 300 -c tessedit_char_whitelist=0123456789"
+    try:
+        d = pytesseract.image_to_data(
+            crop, config=config, output_type=pytesseract.Output.DICT
+        )
+        words = [
+            (t, int(c))
+            for t, c in zip(d["text"], d["conf"])
+            if int(c) >= 0 and t.strip()
+        ]
+        if words:
+            value = " ".join(t for t, _ in words).strip()
+            confidence = float(min(c for _, c in words))
+            return value, confidence
+        return "", -1.0
+    except Exception:
+        return "", -1.0
+
+
 def _extract_name_from_band(ocr_text: str) -> str:
     """Extract patient name from the OCR scan of the name row.
 
@@ -171,10 +196,12 @@ def extract_ub04(image: Image.Image, settings: dict) -> list[FieldResult]:
     for tfd in UB04_TABLE_FIELDS:
         for i, box in enumerate(tfd.row_boxes):
             field_name = f"{tfd.name}_rl{i + 1}"
-            crop = image.crop(box)
-            value, conf = _ocr_region(crop, tfd.psm, tfd.whitelist)
             if tfd.name == "date_of_service":
+                value, conf = _ocr_date_region(image.crop(box), psm=tfd.psm)
                 value = _format_ub04_date(value)
+            else:
+                crop = image.crop(box)
+                value, conf = _ocr_region(crop, tfd.psm, tfd.whitelist)
             results.append(FieldResult(field_name=field_name, value=value, confidence=conf))
 
     return results  # 3 entries: patient_name, total_charge, date_of_service_rl1
