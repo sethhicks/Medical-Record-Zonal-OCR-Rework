@@ -87,41 +87,101 @@ def _ocr_region(
 def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tuple[str, float]:
     """OCR a Box 24 date from the full zone, falling back to per-sub-cell reads.
 
-    Strategy 1: read the whole MM/DD/YY zone with PSM 8 (single-word, digits-only).
-    When Tesseract can see all three sub-cells at once it reliably returns a clean
-    6-digit string (e.g. '121125') that parses directly as MM/DD/YY.  This resolves
-    the partial-read failures caused by per-cell crops clipping the first digit of MM.
+    Strategy 1: try 8 preprocessing/PSM combos on the full MM/DD/YY zone in order,
+    taking the first result where mm (1-12) and dd (1-31) are both valid.
+    The order is: blur5+Otsu (original), thr=100, raw, 2× thr=128,
+    3× blur3+Otsu PSM 6, 3× thr=128, 5× thr=100, no-whitelist PSM 6 sliding-window.
 
     Strategy 2 (fallback): read MM, DD, YY as three separate crops with PSM 8.
-    Used when the full-zone read returns fewer than 6 digits or an invalid date.
 
     Returns ("", -1.0) if no digits can be extracted.
     """
     left, top, right, bottom = box
 
-    # Strategy 1 — full zone, single word.
-    # Primary y first; only probe ±20 px jitter when the primary zone is completely blank
-    # (0 digits). Partial reads at dy=0 are handled by strategy 2.
     def _s1_try(crop):
-        """Return (date_str, conf) on success or (None, digits_str) on failure."""
-        raw = pytesseract.image_to_string(
-            _prepare_numeric_crop(crop, blur_k=5),
-            config="--oem 1 --dpi 600 --psm 8 -c tessedit_char_whitelist=0123456789",
+        """Try multiple preprocessing strategies; return (date, conf, best_digits)."""
+        gray = np.array(crop.convert("L"))
+        h, w = gray.shape
+        best_digits = ""
+
+        def _ocr_d(arr, psm, dpi):
+            img = Image.fromarray(arr).convert("RGB")
+            r = pytesseract.image_to_string(
+                img,
+                config=f"--oem 1 --dpi {dpi} --psm {psm} -c tessedit_char_whitelist=0123456789",
+            ).strip()
+            return re.sub(r"\D", "", r)
+
+        def _check(d):
+            nonlocal best_digits
+            if len(d) > len(best_digits):
+                best_digits = d
+            cands = (
+                [d[1:7], d[:6]] if (len(d) == 7 and d[0] == "1")
+                else ([d[:6]] if len(d) >= 6 else [])
+            )
+            for s in cands:
+                mm, dd = int(s[:2]), int(s[2:4])
+                if 1 <= mm <= 12 and 1 <= dd <= 31:
+                    return f"{s[:2]}/{s[2:4]}/{s[4:]}", 70.0
+            return None, None
+
+        up2 = cv2.resize(gray, (w * 2, h * 2), interpolation=cv2.INTER_CUBIC)
+
+        # S1: blur5 + Otsu, 2×, PSM 8 — original approach, preserves working pages
+        bl5 = cv2.GaussianBlur(up2, (5, 5), 0)
+        _, bw = cv2.threshold(bl5, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        val, conf = _check(_ocr_d(bw, 8, 600))
+        if val: return val, conf, best_digits
+
+        # S2: fixed thr=100, 1×, PSM 8 — handles medium halftone pages
+        _, bw = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
+        val, conf = _check(_ocr_d(bw, 8, 300))
+        if val: return val, conf, best_digits
+
+        # S3: raw, 1×, PSM 8 — fast path for clean-background scans
+        val, conf = _check(_ocr_d(gray, 8, 300))
+        if val: return val, conf, best_digits
+
+        # S4: thr=128, 2×, PSM 8
+        _, bw = cv2.threshold(up2, 128, 255, cv2.THRESH_BINARY)
+        val, conf = _check(_ocr_d(bw, 8, 600))
+        if val: return val, conf, best_digits
+
+        up3 = cv2.resize(gray, (w * 3, h * 3), interpolation=cv2.INTER_CUBIC)
+
+        # S5: blur3 + Otsu, 3×, PSM 6 — handles sub-cell separator interference
+        bl3 = cv2.GaussianBlur(up3, (3, 3), 0)
+        _, bw = cv2.threshold(bl3, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        val, conf = _check(_ocr_d(bw, 6, 900))
+        if val: return val, conf, best_digits
+
+        # S6: thr=128, 3×, PSM 8
+        _, bw = cv2.threshold(up3, 128, 255, cv2.THRESH_BINARY)
+        val, conf = _check(_ocr_d(bw, 8, 900))
+        if val: return val, conf, best_digits
+
+        # S7: thr=100, 5×, PSM 8 — very dense halftone pages
+        up5 = cv2.resize(gray, (w * 5, h * 5), interpolation=cv2.INTER_CUBIC)
+        _, bw = cv2.threshold(up5, 100, 255, cv2.THRESH_BINARY)
+        val, conf = _check(_ocr_d(bw, 8, 1500))
+        if val: return val, conf, best_digits
+
+        # S8: no-whitelist PSM 6 + sliding-window — whitelist suppresses recognition
+        # on dense halftone; removing it lets LSTM find digit sequences in noise
+        r_noisy = pytesseract.image_to_string(
+            crop, config="--oem 1 --dpi 300 --psm 6"
         ).strip()
-        d = re.sub(r"\D", "", raw)
-        # For 7-digit reads where first digit is '1', the row-number column likely bled in.
-        # Try skipping that leading '1' first; fall back to taking digits[:6] as-is.
-        if len(d) == 7 and d[0] == "1":
-            cands = [d[1:7], d[:6]]
-        elif len(d) >= 6:
-            cands = [d[:6]]
-        else:
-            cands = []
-        for s in cands:
-            mm_int, dd_int = int(s[:2]), int(s[2:4])
-            if 1 <= mm_int <= 12 and 1 <= dd_int <= 31:
-                return f"{s[:2]}/{s[2:4]}/{s[4:]}", 70.0, d
-        return None, None, d
+        all_d = re.sub(r"\D", "", r_noisy)
+        if len(all_d) > len(best_digits):
+            best_digits = all_d
+        for i in range(len(all_d) - 5):
+            s = all_d[i:i+6]
+            mm, dd = int(s[:2]), int(s[2:4])
+            if 1 <= mm <= 12 and 1 <= dd <= 31:
+                return f"{s[:2]}/{s[2:4]}/{s[4:]}", 50.0, all_d
+
+        return None, None, best_digits
 
     primary_crop = image.crop(box)
     date_val, conf_val, digits = _s1_try(primary_crop)

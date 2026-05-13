@@ -80,27 +80,47 @@ def _ocr_region(
 def _ocr_date_region(crop: Image.Image, psm: int) -> tuple[str, float]:
     """OCR a date crop using LSTM-only engine (OEM 1) with digits-only whitelist.
 
-    Applies 2× upscale + blur(k=5) + Otsu before OCR.
-    OEM 1 (LSTM-only) is more accurate than OEM 3 for small numeric fields.
+    Tries raw first (no preprocessing), then thr=100, then blur5+Otsu (original).
+    Raw is better for clean and medium halftone pages; blur+Otsu handles heavy noise.
     """
-    processed = _prepare_numeric_crop(crop, blur_k=5)
-    config = f"--oem 1 --psm {psm} --dpi 600 -c tessedit_char_whitelist=0123456789"
-    try:
-        d = pytesseract.image_to_data(
-            processed, config=config, output_type=pytesseract.Output.DICT
-        )
-        words = [
-            (t, int(c))
-            for t, c in zip(d["text"], d["conf"])
-            if int(c) >= 0 and t.strip()
-        ]
-        if words:
-            value = " ".join(t for t, _ in words).strip()
-            confidence = float(min(c for _, c in words))
-            return value, confidence
+    gray = np.array(crop.convert("L"))
+    h, w = gray.shape
+    base_config = f"--oem 1 --psm {psm} -c tessedit_char_whitelist=0123456789"
+
+    def _run(arr, dpi):
+        img = Image.fromarray(arr).convert("RGB")
+        try:
+            d = pytesseract.image_to_data(
+                img, config=f"{base_config} --dpi {dpi}",
+                output_type=pytesseract.Output.DICT,
+            )
+            words = [
+                (t, int(c))
+                for t, c in zip(d["text"], d["conf"])
+                if int(c) >= 0 and t.strip()
+            ]
+            if words:
+                return " ".join(t for t, _ in words).strip(), float(min(c for _, c in words))
+        except Exception:
+            pass
         return "", -1.0
-    except Exception:
-        return "", -1.0
+
+    # S1: raw, 1×
+    val, conf = _run(gray, 300)
+    if val:
+        return val, conf
+
+    # S2: fixed thr=100, 1×
+    _, bw = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
+    val, conf = _run(bw, 300)
+    if val:
+        return val, conf
+
+    # S3: blur5+Otsu, 2× (original)
+    up2 = cv2.resize(gray, (w * 2, h * 2), interpolation=cv2.INTER_CUBIC)
+    bl5 = cv2.GaussianBlur(up2, (5, 5), 0)
+    _, bw = cv2.threshold(bl5, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return _run(bw, 600)
 
 
 def _extract_name_from_band(ocr_text: str) -> str:
@@ -193,7 +213,7 @@ def _ocr_total_charge_ub04(image: Image.Image, primary_box: tuple) -> tuple[str,
                 token = re.sub(r"^\D+", "", token)
                 token = re.sub(r"\D+$", "", token)
                 digit_count = len(re.sub(r"\D", "", token))
-                if 3 <= digit_count <= 6:
+                if 3 <= digit_count <= 7:
                     return token, conf
     return "", -1.0
 
