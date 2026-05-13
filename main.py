@@ -168,7 +168,7 @@ class OCRApp:
             total += n_pages
 
         all_pages: list = []
-        error_pages: list[tuple[str, str]] = []  # (form_type_guess, error_message)
+        error_rows: list[tuple[int, str]] = []  # (all_pages index, error_message)
         current = 0
 
         for pdf_path, n_pages in zip(files, page_counts):
@@ -181,7 +181,8 @@ class OCRApp:
                     if form == "UNKNOWN":
                         self._queue.put(("error", pdf_path, page_num,
                                          "UNKNOWN form type"))
-                        error_pages.append(("UNKNOWN", "UNKNOWN form type"))
+                        error_rows.append((len(all_pages), "UNKNOWN form type"))
+                        all_pages.append([])  # placeholder preserves row order
                     else:
                         proc = pipeline.preprocess_page(raw, settings)
                         if form == "CMS-1500":
@@ -191,7 +192,8 @@ class OCRApp:
                         all_pages.append(results)
                 except Exception as exc:
                     self._queue.put(("error", pdf_path, page_num, str(exc)))
-                    error_pages.append(("UNKNOWN", str(exc)))
+                    error_rows.append((len(all_pages), str(exc)))
+                    all_pages.append([])  # placeholder preserves row order
 
         # Write workbook — WR-02 fix: ensure output_dir exists before saving
         output_path: str | None = None
@@ -202,32 +204,26 @@ class OCRApp:
         except Exception as exc:
             self._queue.put(("error", "", 0, f"write_workbook failed: {exc}"))
 
-        # Post-process: append blank rows for error pages to the CMS-1500 sheet (D-14 / SC-5).
-        # write_workbook() signature is frozen (Phase 5 D-06) — do NOT pass error_pages to it.
-        # Open the saved workbook and append one blank row per error page with only the
-        # extraction_error column populated.
-        if output_path and error_pages:
+        # Post-process: write error messages into each page's own row (not appended at end).
+        # Row = page index + 2 (row 1 is the header; all_pages is 0-based).
+        if output_path and error_rows:
             try:
                 wb = _openpyxl.load_workbook(output_path)
                 ws = wb["Results"]
-                # Find extraction_error column index (1-based) by scanning header row
                 header_row = [ws.cell(row=1, column=c).value
                               for c in range(1, ws.max_column + 1)]
                 try:
                     err_col = header_row.index("extraction_error") + 1
                 except ValueError:
-                    # Column not present — append as a new column after the last header
                     err_col = ws.max_column + 1
                     ws.cell(row=1, column=err_col, value="extraction_error")
-                next_row = ws.max_row + 1
-                for _, err_msg in error_pages:
-                    ws.cell(row=next_row, column=err_col, value=err_msg)
-                    next_row += 1
+                for page_idx, err_msg in error_rows:
+                    ws.cell(row=page_idx + 2, column=err_col, value=err_msg)
                 wb.save(output_path)
             except Exception as exc:
-                self._queue.put(("error", "", 0, f"error_pages write failed: {exc}"))
+                self._queue.put(("error", "", 0, f"error_rows write failed: {exc}"))
 
-        self._queue.put(("done", output_path, len(error_pages)))
+        self._queue.put(("done", output_path, len(error_rows)))
 
     def poll_queue(self) -> None:
         """Read all pending queue messages and update UI accordingly.
