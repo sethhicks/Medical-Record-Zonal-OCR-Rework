@@ -17,7 +17,7 @@ from config.base import FieldDef, TableFieldDef  # noqa: F401
 
 CMS1500_FIELDS: list[FieldDef] = [
     FieldDef(name="patient_name", box=(70, 540, 920, 610), psm=6, whitelist=None,             label="Box 2 — Patient Name row"),
-    FieldDef(name="total_charge", box=(1590, 2800, 1850, 2860), psm=7,  whitelist="0123456789. ", label="Box 28 — Total Charge"),
+    FieldDef(name="total_charge", box=(1590, 2780, 1850, 2860), psm=7,  whitelist="0123456789. ", label="Box 28 — Total Charge"),
 ]
 
 

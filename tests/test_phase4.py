@@ -276,10 +276,10 @@ def test_cms1500_smoke_80pct(test_pdf_path, sample_settings):
 
 
 def test_ub04_smoke_80pct(test_pdf_path, sample_settings):
-    """Real UB-04 page: >=33% non-empty fields (3 fields: name, charge, date)."""
+    """Real UB-04 page: >=67% non-empty fields (at least 2 of 3: name, charge, date)."""
     from pipeline import convert_page, preprocess_page, extract_ub04
 
-    UB04_THRESHOLD = 0.33  # at least 1 of 3 fields non-empty
+    UB04_THRESHOLD = 2 / 3  # at least 2 of 3 fields non-empty
     raw = convert_page(test_pdf_path, 11)
     proc = preprocess_page(raw, sample_settings)
     results = extract_ub04(proc, sample_settings)

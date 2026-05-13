@@ -56,14 +56,21 @@ def detect_form_type(image: "Image.Image") -> str:
     footer_psm11 = pytesseract.image_to_string(footer_gray, config='--psm 11').upper()
 
     # CMS-1500 anchor evaluation (partial substring matching — exact strings garble on scans)
-    # 'HEAL' matches both 'HEALTH' and partially-recovered 'HEAL' fragments.
-    heal_hit = 'HEAL' in header_psm6 or 'HEAL' in header_psm11
+    # 'EALTH' catches pages where the scanner clips the leading 'H' of 'HEALTH
+    # INSURANCE CLAIM FORM', which appears as 'IEALTH' or '[EALTH' in OCR output.
+    heal_hit = (
+        'HEAL' in header_psm6 or 'HEAL' in header_psm11 or
+        'EALTH' in header_psm6 or 'EALTH' in header_psm11
+    )
     nuc_hit = 'NUC' in footer_psm6 or 'NUC' in footer_psm11
+    # 'INSTRUCTI' matches 'NUCC Instruction Manual' printed at the bottom of every
+    # CMS-1500 form; this text does not appear on UB-04 forms.
+    instructi_hit = 'INSTRUCTI' in footer_psm6 or 'INSTRUCTI' in footer_psm11
     form1500_hit = (
         ('FORM' in footer_psm6 and '1500' in footer_psm6) or
         ('FORM' in footer_psm11 and '1500' in footer_psm11)
     )
-    cms_score = sum([heal_hit, nuc_hit, form1500_hit])  # 0-3
+    cms_score = sum([heal_hit, nuc_hit or instructi_hit, form1500_hit])  # 0-3
 
     # UB-04 anchor evaluation
     nubc_hit = 'NUBC' in footer_psm6 or 'NUBC' in footer_psm11
