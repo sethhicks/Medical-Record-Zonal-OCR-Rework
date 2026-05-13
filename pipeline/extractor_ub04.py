@@ -28,17 +28,18 @@ from config.ub04 import UB04_FIELDS, UB04_TABLE_FIELDS
 from models.field_result import FieldResult
 
 
-def _prepare_numeric_crop(crop: Image.Image) -> Image.Image:
-    """Upscale and binarize a numeric crop for better Tesseract digit recognition.
+def _prepare_numeric_crop(crop: Image.Image, blur_k: int = 9) -> Image.Image:
+    """Upscale, blur, and binarize a numeric crop for Tesseract digit recognition.
 
-    2× cubic upscale brings character height to ~60 px (from ~30 px at 300 DPI),
-    which is in Tesseract's accuracy sweet spot.  Otsu's threshold removes scan
-    noise and grey backgrounds, producing clean black-on-white output.
+    Gaussian blur before Otsu merges halftone/noise dots into uniform grey so
+    Otsu finds a clean split. Without blur, Otsu misclassifies halftone as text.
+    blur_k=9 for charges, blur_k=5 for dates.
     """
     gray = np.array(crop.convert("L"))
     h, w = gray.shape
     upscaled = cv2.resize(gray, (w * 2, h * 2), interpolation=cv2.INTER_CUBIC)
-    _, binary = cv2.threshold(upscaled, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    blurred = cv2.GaussianBlur(upscaled, (blur_k, blur_k), 0)
+    _, binary = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return Image.fromarray(binary).convert("RGB")
 
 
@@ -79,10 +80,10 @@ def _ocr_region(
 def _ocr_date_region(crop: Image.Image, psm: int) -> tuple[str, float]:
     """OCR a date crop using LSTM-only engine (OEM 1) with digits-only whitelist.
 
-    Applies 2× upscale and Otsu binarization before OCR.
+    Applies 2× upscale + blur(k=5) + Otsu before OCR.
     OEM 1 (LSTM-only) is more accurate than OEM 3 for small numeric fields.
     """
-    processed = _prepare_numeric_crop(crop)
+    processed = _prepare_numeric_crop(crop, blur_k=5)
     config = f"--oem 1 --psm {psm} --dpi 600 -c tessedit_char_whitelist=0123456789"
     try:
         d = pytesseract.image_to_data(
@@ -177,13 +178,23 @@ def _ocr_total_charge_ub04(image: Image.Image, primary_box: tuple) -> tuple[str,
     left, top, right, bottom = primary_box
     for dy in (0, -30, 30, -60, 60):
         box = (left, top + dy, right, bottom + dy)
-        crop = _prepare_numeric_crop(image.crop(box))
-        val, conf = _ocr_region(crop, psm=8, whitelist="0123456789. ", oem=1, dpi=600)
+        raw_crop = image.crop(box)
+
+        # Pass 1: raw, PSM 8 — accurate for clean-background scans.
+        val, conf = _ocr_region(raw_crop, psm=8, whitelist="0123456789. ", oem=1, dpi=300)
+        if not val:
+            # Pass 2: blur(k=9)+Otsu — handles halftone cell backgrounds.
+            val, conf = _ocr_region(
+                _prepare_numeric_crop(raw_crop, blur_k=9),
+                psm=6, whitelist="0123456789. ", oem=1, dpi=600,
+            )
         if val:
-            token = val.split()[0]
-            digit_count = len(re.sub(r"\D", "", token))
-            if 3 <= digit_count <= 6:
-                return token, conf
+            for token in re.split(r"\s+", val):
+                token = re.sub(r"^\D+", "", token)
+                token = re.sub(r"\D+$", "", token)
+                digit_count = len(re.sub(r"\D", "", token))
+                if 3 <= digit_count <= 6:
+                    return token, conf
     return "", -1.0
 
 

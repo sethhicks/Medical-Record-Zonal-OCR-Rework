@@ -34,17 +34,19 @@ _DATE_MM_WIDTH = 75   # MM: left → left+75
 _DATE_DD_WIDTH = 60   # DD: left+75 → left+135
 
 
-def _prepare_numeric_crop(crop: Image.Image) -> Image.Image:
-    """Upscale and binarize a numeric crop for better Tesseract digit recognition.
+def _prepare_numeric_crop(crop: Image.Image, blur_k: int = 9) -> Image.Image:
+    """Upscale, blur, and binarize a numeric crop for Tesseract digit recognition.
 
-    2× cubic upscale brings character height to ~60 px (from ~30 px at 300 DPI),
-    which is in Tesseract's accuracy sweet spot.  Otsu's threshold removes scan
-    noise and grey backgrounds, producing clean black-on-white output.
+    Gaussian blur before Otsu is critical: it merges halftone/noise dots into a
+    uniform grey background so Otsu finds a clean text-vs-background split.
+    Without blur, Otsu misclassifies halftone dots as text and destroys reads.
+    blur_k=9 for charges (coarser halftone), blur_k=5 for dates (finer cells).
     """
     gray = np.array(crop.convert("L"))
     h, w = gray.shape
     upscaled = cv2.resize(gray, (w * 2, h * 2), interpolation=cv2.INTER_CUBIC)
-    _, binary = cv2.threshold(upscaled, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    blurred = cv2.GaussianBlur(upscaled, (blur_k, blur_k), 0)
+    _, binary = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return Image.fromarray(binary).convert("RGB")
 
 
@@ -103,7 +105,7 @@ def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tup
     def _s1_try(crop):
         """Return (date_str, conf) on success or (None, digits_str) on failure."""
         raw = pytesseract.image_to_string(
-            _prepare_numeric_crop(crop),
+            _prepare_numeric_crop(crop, blur_k=5),
             config="--oem 1 --dpi 600 --psm 8 -c tessedit_char_whitelist=0123456789",
         ).strip()
         d = re.sub(r"\D", "", raw)
@@ -143,7 +145,7 @@ def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tup
     parts: list[str] = []
     confs: list[float] = []
     for sub_box in sub_boxes:
-        sub_crop = _prepare_numeric_crop(image.crop(sub_box))
+        sub_crop = _prepare_numeric_crop(image.crop(sub_box), blur_k=5)
         val, conf = _ocr_region(sub_crop, psm=8, whitelist="0123456789 ", oem=1, dpi=600)
         parts.append(val.strip())
         if conf >= 0:
@@ -184,7 +186,7 @@ def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tup
         # Single sub-cell read with no slash separator — likely garbage.
         # Try PSM 6 on the full zone: it often sees text that PSM 8 misses.
         raw6 = pytesseract.image_to_string(
-            _prepare_numeric_crop(image.crop(box)),
+            _prepare_numeric_crop(image.crop(box), blur_k=5),
             config="--oem 1 --dpi 600 --psm 6 -c tessedit_char_whitelist=0123456789",
         ).strip()
         d6 = "".join(re.findall(r"\d+", raw6))
@@ -249,15 +251,25 @@ def _ocr_total_charge_cms1500(image: Image.Image, primary_box: tuple) -> tuple[s
     left, top, right, bottom = primary_box
     for dy in (0, -20, 20, -40, 40):
         box = (left, top + dy, right, bottom + dy)
-        crop = _prepare_numeric_crop(image.crop(box))
-        val, conf = _ocr_region(crop, psm=7, whitelist="0123456789. ", oem=1, dpi=600)
+        raw_crop = image.crop(box)
+
+        # Pass 1: raw image, PSM 7 — fast and accurate for clean-background scans.
+        val, conf = _ocr_region(raw_crop, psm=7, whitelist="0123456789. ", oem=1, dpi=300)
+        if not val:
+            # Pass 2: blur(k=9)+Otsu — handles halftone/grey-cell backgrounds.
+            # PSM 6 (block) handles the two-line crop (label + amount) better than PSM 7.
+            val, conf = _ocr_region(
+                _prepare_numeric_crop(raw_crop, blur_k=9),
+                psm=6, whitelist="0123456789. ", oem=1, dpi=600,
+            )
         if val:
-            token = val.split()[0]
-            # Strip leading non-digit characters (e.g. '...' OCR artefact)
-            token = re.sub(r"^\D+", "", token)
-            digit_count = len(re.sub(r"\D", "", token))
-            if 3 <= digit_count <= 6:
-                return token, conf
+            # Take the first token that looks like a dollar amount
+            for token in re.split(r"\s+", val):
+                token = re.sub(r"^\D+", "", token)
+                token = re.sub(r"\D+$", "", token)
+                digit_count = len(re.sub(r"\D", "", token))
+                if 3 <= digit_count <= 6:
+                    return token, conf
     return "", -1.0
 
 
