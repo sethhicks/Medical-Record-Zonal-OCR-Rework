@@ -3,7 +3,7 @@
 
 Writer produces one 'Results' sheet with 3 columns:
   Patient Name | Total Charge | Date of Service
-CMS-1500 and UB-04 pages are combined in order.
+Pages are written in the order supplied (PDF page order).
 """
 import pytest
 from pathlib import Path
@@ -24,22 +24,14 @@ def _make_results(field_names, value="", confidence=95.0):
 def test_write_workbook_returns_str(tmp_path):
     """write_workbook returns a str (file path to created workbook) (OUT-01)."""
     from pipeline import write_workbook
-    result = write_workbook(
-        cms_pages=[[]],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[[]], settings={"output_dir": str(tmp_path)})
     assert isinstance(result, str)
 
 
 def test_output_file_created(tmp_path):
     """write_workbook creates the output .xlsx file on disk (OUT-01)."""
     from pipeline import write_workbook
-    result = write_workbook(
-        cms_pages=[[]],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[[]], settings={"output_dir": str(tmp_path)})
     assert Path(result).exists()
 
 
@@ -47,11 +39,7 @@ def test_single_results_sheet(tmp_path):
     """Workbook contains exactly one sheet named 'Results' (OUT-02)."""
     import openpyxl
     from pipeline import write_workbook
-    result = write_workbook(
-        cms_pages=[[]],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[[]], settings={"output_dir": str(tmp_path)})
     wb = openpyxl.load_workbook(result)
     assert wb.sheetnames == ["Results"]
 
@@ -61,11 +49,7 @@ def test_cms1500_column_count(tmp_path):
     import openpyxl
     from pipeline import write_workbook
     results = _make_results(["patient_name", "total_charge", "date_of_service_sl1"])
-    result = write_workbook(
-        cms_pages=[results],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[results], settings={"output_dir": str(tmp_path)})
     wb = openpyxl.load_workbook(result)
     assert wb["Results"].max_column == 3
 
@@ -75,11 +59,7 @@ def test_ub04_column_count(tmp_path):
     import openpyxl
     from pipeline import write_workbook
     results = _make_results(["patient_name", "total_charge", "date_of_service_rl1"])
-    result = write_workbook(
-        cms_pages=[[]],
-        ub_pages=[results],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[results], settings={"output_dir": str(tmp_path)})
     wb = openpyxl.load_workbook(result)
     assert wb["Results"].max_column == 3
 
@@ -88,11 +68,7 @@ def test_header_row_frozen(tmp_path):
     """Results sheet header row is frozen (freeze_panes == 'A2') (OUT-03)."""
     import openpyxl
     from pipeline import write_workbook
-    result = write_workbook(
-        cms_pages=[[]],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[[]], settings={"output_dir": str(tmp_path)})
     wb = openpyxl.load_workbook(result)
     assert wb["Results"].freeze_panes == "A2"
 
@@ -102,11 +78,7 @@ def test_no_yellow_fill(tmp_path):
     import openpyxl
     from pipeline import write_workbook
     results = _make_results(["total_charge"], value="150.00", confidence=10.0)
-    result = write_workbook(
-        cms_pages=[results],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[results], settings={"output_dir": str(tmp_path)})
     wb = openpyxl.load_workbook(result)
     ws = wb["Results"]
     for row in ws.iter_rows(min_row=2):
@@ -130,11 +102,7 @@ def test_text_format_charge_column(tmp_path):
     import openpyxl
     from pipeline import write_workbook
     results = _make_results(["total_charge"], value="123.45", confidence=95.0)
-    result = write_workbook(
-        cms_pages=[results],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[results], settings={"output_dir": str(tmp_path)})
     wb = openpyxl.load_workbook(result)
     ws = wb["Results"]
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
@@ -147,11 +115,7 @@ def test_text_format_date_column(tmp_path):
     import openpyxl
     from pipeline import write_workbook
     results = _make_results(["date_of_service_sl1"], value="01/01/2024", confidence=95.0)
-    result = write_workbook(
-        cms_pages=[results],
-        ub_pages=[[]],
-        settings={"output_dir": str(tmp_path)},
-    )
+    result = write_workbook(all_pages=[results], settings={"output_dir": str(tmp_path)})
     wb = openpyxl.load_workbook(result)
     ws = wb["Results"]
     header_row = [ws.cell(1, col).value for col in range(1, ws.max_column + 1)]
@@ -160,15 +124,30 @@ def test_text_format_date_column(tmp_path):
 
 
 def test_one_row_per_page(tmp_path):
-    """Results sheet has one row per page across both form types (header + N data rows) (OUT-02)."""
+    """Results sheet has one row per page in supplied order (header + N data rows) (OUT-02)."""
     import openpyxl
     from pipeline import write_workbook
     page1 = _make_results(["patient_name"], value="Smith, John", confidence=90.0)
     page2 = _make_results(["patient_name"], value="Doe, Jane", confidence=90.0)
+    result = write_workbook(all_pages=[page1, page2], settings={"output_dir": str(tmp_path)})
+    wb = openpyxl.load_workbook(result)
+    assert wb["Results"].max_row == 3  # header row + 2 data rows
+
+
+def test_page_order_preserved(tmp_path):
+    """Rows appear in the exact order pages are supplied — no form-type reordering (OUT-02)."""
+    import openpyxl
+    from pipeline import write_workbook
+    from models.field_result import FieldResult
+    cms_page = [FieldResult(field_name="patient_name", value="Smith, John", confidence=90.0)]
+    ub_page  = [FieldResult(field_name="patient_name", value="Doe, Jane",   confidence=90.0)]
+    # Interleave: CMS, UB, CMS
     result = write_workbook(
-        cms_pages=[page1, page2],
-        ub_pages=[],
+        all_pages=[cms_page, ub_page, cms_page],
         settings={"output_dir": str(tmp_path)},
     )
     wb = openpyxl.load_workbook(result)
-    assert wb["Results"].max_row == 3  # header row + 2 data rows
+    ws = wb["Results"]
+    assert ws.cell(2, 1).value == "Smith, John"
+    assert ws.cell(3, 1).value == "Doe, Jane"
+    assert ws.cell(4, 1).value == "Smith, John"

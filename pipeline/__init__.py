@@ -7,7 +7,7 @@ Exposes:
     detect_form_type(image) -> str
     extract_cms1500(image, settings) -> list[FieldResult]
     extract_ub04(image, settings) -> list[FieldResult]
-    write_workbook(cms_pages, ub_pages, settings) -> str
+    write_workbook(all_pages, settings) -> str
 """
 from .converter import convert_page
 from .preprocessor import preprocess_page

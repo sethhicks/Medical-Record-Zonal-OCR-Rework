@@ -167,8 +167,7 @@ class OCRApp:
             page_counts.append(n_pages)
             total += n_pages
 
-        cms_pages: list = []
-        ub_pages: list = []
+        all_pages: list = []
         error_pages: list[tuple[str, str]] = []  # (form_type_guess, error_message)
         current = 0
 
@@ -187,10 +186,9 @@ class OCRApp:
                         proc = pipeline.preprocess_page(raw, settings)
                         if form == "CMS-1500":
                             results = pipeline.extract_cms1500(proc, settings)
-                            cms_pages.append(results)
                         else:
                             results = pipeline.extract_ub04(proc, settings)
-                            ub_pages.append(results)
+                        all_pages.append(results)
                 except Exception as exc:
                     self._queue.put(("error", pdf_path, page_num, str(exc)))
                     error_pages.append(("UNKNOWN", str(exc)))
@@ -200,7 +198,7 @@ class OCRApp:
         try:
             os.makedirs(settings.get("output_dir", str(Path.home() / "Desktop")),
                         exist_ok=True)
-            output_path = pipeline.write_workbook(cms_pages, ub_pages, settings)
+            output_path = pipeline.write_workbook(all_pages, settings)
         except Exception as exc:
             self._queue.put(("error", "", 0, f"write_workbook failed: {exc}"))
 

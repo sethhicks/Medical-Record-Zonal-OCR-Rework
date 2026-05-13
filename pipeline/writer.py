@@ -2,13 +2,13 @@
 """Excel workbook writer for OCR extraction results.
 
 Public API:
-    write_workbook(cms_pages, ub_pages, settings) -> str
-        Accepts per-page FieldResult lists for CMS-1500 and UB-04 pages and
-        produces a formatted billing-staff-ready Excel workbook.
+    write_workbook(all_pages, settings) -> str
+        Accepts per-page FieldResult lists in document order and produces a
+        formatted billing-staff-ready Excel workbook.
 
         Args:
-            cms_pages: list of per-page FieldResult lists for CMS-1500 pages
-            ub_pages: list of per-page FieldResult lists for UB-04 pages
+            all_pages: list of per-page FieldResult lists in PDF page order
+                       (CMS-1500 and UB-04 pages interleaved as they appear)
             settings: dict from load_settings(); reads 'output_dir' and
                       'confidence_threshold' keys
 
@@ -89,23 +89,22 @@ def _write_sheet(
 # ---------------------------------------------------------------------------
 
 def write_workbook(
-    cms_pages: list[list[FieldResult]],
-    ub_pages: list[list[FieldResult]],
+    all_pages: list[list[FieldResult]],
     settings: dict,
 ) -> str:
     """Write extraction results to a formatted Excel workbook.
 
     Creates 'extracted_results.xlsx' in settings['output_dir'] with one sheet
     'Results' containing 3 columns: Patient Name, Total Charge, Date of Service.
-    CMS-1500 and UB-04 pages are combined in order (CMS first, then UB-04).
+    Pages are written in the order supplied — callers must pass them in PDF
+    page order so the sheet mirrors the source document.
     Header row frozen at A2, columns width 20.
 
     Security note: output filename is hardcoded ('extracted_results.xlsx').
     Only the directory comes from settings — prevents path injection (T-05-02).
 
     Args:
-        cms_pages: Per-page FieldResult lists for CMS-1500 pages.
-        ub_pages: Per-page FieldResult lists for UB-04 pages.
+        all_pages: Per-page FieldResult lists in PDF page order.
         settings: Dict from load_settings(). Reads 'output_dir' (default Desktop).
 
     Returns:
@@ -117,7 +116,6 @@ def write_workbook(
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
 
-    all_pages = list(cms_pages) + list(ub_pages)
     ws_results = wb.create_sheet("Results")
     _write_sheet(ws_results, _headers(), _col_map(), all_pages)
 
