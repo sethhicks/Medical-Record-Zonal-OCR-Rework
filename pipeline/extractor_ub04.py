@@ -19,6 +19,8 @@ Public API:
 import re
 from typing import Optional
 
+import cv2
+import numpy as np
 import pytesseract
 from PIL import Image
 
@@ -26,10 +28,26 @@ from config.ub04 import UB04_FIELDS, UB04_TABLE_FIELDS
 from models.field_result import FieldResult
 
 
+def _prepare_numeric_crop(crop: Image.Image) -> Image.Image:
+    """Upscale and binarize a numeric crop for better Tesseract digit recognition.
+
+    2× cubic upscale brings character height to ~60 px (from ~30 px at 300 DPI),
+    which is in Tesseract's accuracy sweet spot.  Otsu's threshold removes scan
+    noise and grey backgrounds, producing clean black-on-white output.
+    """
+    gray = np.array(crop.convert("L"))
+    h, w = gray.shape
+    upscaled = cv2.resize(gray, (w * 2, h * 2), interpolation=cv2.INTER_CUBIC)
+    _, binary = cv2.threshold(upscaled, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return Image.fromarray(binary).convert("RGB")
+
+
 def _ocr_region(
     crop: Image.Image,
     psm: int,
     whitelist: Optional[str],
+    oem: int = 3,
+    dpi: int = 300,
 ) -> tuple[str, float]:
     """Run Tesseract on a pre-cropped image region.
 
@@ -37,7 +55,7 @@ def _ocr_region(
         (value, confidence) — value is stripped joined text;
         ("", -1.0) if no words found or exception raised.
     """
-    config = f"--psm {psm} --dpi 300"
+    config = f"--oem {oem} --psm {psm} --dpi {dpi}"
     if whitelist:
         config += f" -c tessedit_char_whitelist={whitelist}"
     try:
@@ -61,13 +79,14 @@ def _ocr_region(
 def _ocr_date_region(crop: Image.Image, psm: int) -> tuple[str, float]:
     """OCR a date crop using LSTM-only engine (OEM 1) with digits-only whitelist.
 
-    OEM 1 (LSTM-only) is more accurate than the default combined engine (OEM 3)
-    for small numeric fields on degraded scans.
+    Applies 2× upscale and Otsu binarization before OCR.
+    OEM 1 (LSTM-only) is more accurate than OEM 3 for small numeric fields.
     """
-    config = f"--oem 1 --psm {psm} --dpi 300 -c tessedit_char_whitelist=0123456789"
+    processed = _prepare_numeric_crop(crop)
+    config = f"--oem 1 --psm {psm} --dpi 600 -c tessedit_char_whitelist=0123456789"
     try:
         d = pytesseract.image_to_data(
-            crop, config=config, output_type=pytesseract.Output.DICT
+            processed, config=config, output_type=pytesseract.Output.DICT
         )
         words = [
             (t, int(c))
@@ -156,9 +175,10 @@ def _ocr_total_charge_ub04(image: Image.Image, primary_box: tuple) -> tuple[str,
     Requires 3–6 digit characters to accept a read as a real amount.
     """
     left, top, right, bottom = primary_box
-    for dy in (0, 30):
+    for dy in (0, -30, 30, -60, 60):
         box = (left, top + dy, right, bottom + dy)
-        val, conf = _ocr_region(image.crop(box), psm=8, whitelist="0123456789. ")
+        crop = _prepare_numeric_crop(image.crop(box))
+        val, conf = _ocr_region(crop, psm=8, whitelist="0123456789. ", oem=1, dpi=600)
         if val:
             token = val.split()[0]
             digit_count = len(re.sub(r"\D", "", token))
