@@ -244,12 +244,21 @@ def extract_ub04(image: Image.Image, settings: dict) -> list[FieldResult]:
             value, conf = _ocr_region(crop, fd.psm, fd.whitelist)
             results.append(FieldResult(field_name=fd.name, value=value, confidence=conf))
 
+    # Box 6 (Statement Covers Period FROM) — fallback when Box 12 (Admission Date) is blank.
+    # Box 12 is only filled for inpatient claims; outpatient claims leave it empty.
+    # Box 6 FROM is filled for all UB-04 claim types.
+    _BOX6_FROM = (1820, 220, 2100, 275)
+
     for tfd in UB04_TABLE_FIELDS:
         for i, box in enumerate(tfd.row_boxes):
             field_name = f"{tfd.name}_rl{i + 1}"
             if tfd.name == "date_of_service":
                 value, conf = _ocr_date_region(image.crop(box), psm=tfd.psm)
                 value = _format_ub04_date(value)
+                if not value:
+                    # Box 12 blank — try Box 6 Statement Covers Period FROM date
+                    raw6, conf = _ocr_date_region(image.crop(_BOX6_FROM), psm=tfd.psm)
+                    value = _format_ub04_date(raw6)
             else:
                 crop = image.crop(box)
                 value, conf = _ocr_region(crop, tfd.psm, tfd.whitelist)
