@@ -255,6 +255,76 @@ def _ocr_service_date(image: Image.Image, box: tuple[int, int, int, int]) -> tup
             mm6, dd6 = int(s[:2]), int(s[2:4])
             if 1 <= mm6 <= 12 and 1 <= dd6 <= 31:
                 return f"{s[:2]}/{s[2:4]}/{s[4:]}", 50.0
+    # Strategy 3: dense halftone recovery via CLAHE/bilateral on tight top crop.
+    return _ocr_date_halftone(image, box)
+
+
+def _ocr_date_halftone(image: Image.Image, box: tuple) -> tuple[str, float]:
+    """Dense halftone fallback for Box 24 service dates.
+
+    Standard strategies fail when heavy halftone dot patterns create similar
+    brightness to digit strokes. CLAHE locally equalises contrast so digits
+    stand out. Three CLAHE configurations handle distinct halftone densities:
+    - S1: clip=3, blur_k=7, thr=70 — moderate halftone
+    - S2: clip=2, blur_k=7, thr=100 — fine halftone pattern
+    - S3: clip=2, blur_k=11, thr=60 — coarser halftone / shifted digit cells
+    Tries the original left bound plus left-10 and left-20 shifts to handle
+    scans where digit cells start slightly outside the configured left edge.
+    Only reads the top 45px — digits occupy the top portion; heavier halftone
+    in the lower cells corrupts standard approaches.
+    """
+    left, top, right, _ = box
+
+    def _check_6(d: str) -> tuple[str, float]:
+        cands = (
+            [d[1:7], d[:6]] if len(d) == 7 and d[0] == "1"
+            else [d[:6]] if len(d) >= 6 else []
+        )
+        for s in cands:
+            mm, dd = int(s[:2]), int(s[2:4])
+            if 1 <= mm <= 12 and 1 <= dd <= 31:
+                return f"{s[:2]}/{s[2:4]}/{s[4:]}", 70.0
+        return "", -1.0
+
+    def _ocr_bw(arr: np.ndarray) -> str:
+        img = Image.fromarray(arr).convert("RGB")
+        cfg = "--oem 1 --psm 7 -c tessedit_char_whitelist=0123456789 --dpi 600"
+        try:
+            return re.sub(r"\D", "", pytesseract.image_to_string(img, config=cfg).strip())
+        except Exception:
+            return ""
+
+    for dx in (0, -10, -20):
+        x0 = max(0, left + dx)
+        gray = np.array(image.crop((x0, top, right, top + 45)).convert("L"))
+        ht, wt = gray.shape
+
+        cl3 = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4)).apply(gray)
+        up2_c3 = cv2.resize(cl3, (wt * 2, ht * 2), interpolation=cv2.INTER_CUBIC)
+        cl2 = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4)).apply(gray)
+        up2_c2 = cv2.resize(cl2, (wt * 2, ht * 2), interpolation=cv2.INTER_CUBIC)
+
+        # S1: clip=3, blur_k=7, thr=70
+        bl7_c3 = cv2.GaussianBlur(up2_c3, (7, 7), 0)
+        _, bw1 = cv2.threshold(bl7_c3, 70, 255, cv2.THRESH_BINARY)
+        val, conf = _check_6(_ocr_bw(bw1))
+        if val:
+            return val, conf
+
+        # S2: clip=2, blur_k=7, thr=100
+        bl7_c2 = cv2.GaussianBlur(up2_c2, (7, 7), 0)
+        _, bw2 = cv2.threshold(bl7_c2, 100, 255, cv2.THRESH_BINARY)
+        val, conf = _check_6(_ocr_bw(bw2))
+        if val:
+            return val, conf
+
+        # S3: clip=2, blur_k=11, thr=60
+        bl11_c2 = cv2.GaussianBlur(up2_c2, (11, 11), 0)
+        _, bw3 = cv2.threshold(bl11_c2, 60, 255, cv2.THRESH_BINARY)
+        val, conf = _check_6(_ocr_bw(bw3))
+        if val:
+            return val, conf
+
     return "", -1.0
 
 
@@ -290,7 +360,8 @@ def _ocr_patient_name_cms1500(image: Image.Image, primary_box: tuple) -> tuple[s
 
     PSM 6 assumes a dense text block and fails when the row contains sparse content
     (form borders, label artefacts mixed with a single name token). PSM 11 (sparse
-    text) is used as a fallback for pages where PSM 6 returns no recognisable name.
+    text) is used as a fallback. If both fail, tries a crop shifted 40px up — some
+    scans place the name row above the calibrated primary zone.
     """
     crop = image.crop(primary_box)
     val, conf = _ocr_region(crop, psm=6, whitelist=None)
@@ -298,7 +369,13 @@ def _ocr_patient_name_cms1500(image: Image.Image, primary_box: tuple) -> tuple[s
     if name:
         return name, conf
     val11, conf11 = _ocr_region(crop, psm=11, whitelist=None)
-    return _extract_from_name_band(val11), conf11
+    name11 = _extract_from_name_band(val11)
+    if name11:
+        return name11, conf11
+    left, top, right, bottom = primary_box
+    shifted_crop = image.crop((left, top - 40, right, bottom))
+    val_s, conf_s = _ocr_region(shifted_crop, psm=6, whitelist=None)
+    return _extract_from_name_band(val_s), conf_s
 
 
 def _ocr_total_charge_cms1500(image: Image.Image, primary_box: tuple) -> tuple[str, float]:
