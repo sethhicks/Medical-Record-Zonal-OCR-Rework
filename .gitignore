@@ -39,3 +39,28 @@ settings.json
 
 # Tooling / editor local config (not project files)
 .claude/
+
+# Session continuity (Claude Code internal)
+.continue-here.md
+
+# GSD planning directory (development workflow, not needed to run)
+.planning/
+
+# Diagnostic / debug images and scripts (generated during development)
+diag_*.png
+diag_*.py
+calibration_overlay_*.png
+crop_charge_*.png
+crop_date_*.png
+diag_crops/
+debug_sl/
+
+# Calibration reference images (not used by production code)
+template_cms.png
+template_ub.png
+
+# Development utilities (not needed to run)
+sweep_all_pages.py
+
+# Test sample PDF (large binary, not needed to run)
+test.pdf
