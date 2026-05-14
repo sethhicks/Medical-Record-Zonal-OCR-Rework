@@ -1,10 +1,20 @@
 # OCR Medical Billing Form Extractor
 
-Desktop application that extracts billing fields from scanned CMS-1500 and UB-04 PDFs and writes them to Excel.
+Desktop application that extracts three billing fields from scanned CMS-1500 and UB-04 PDFs and writes them to Excel.
+
+**Extracted fields (per page):**
+
+| Field | CMS-1500 source | UB-04 source |
+|-------|----------------|--------------|
+| Patient Name | Box 2 | Box 8 |
+| Total Charge | Box 28 | EST. Amount Due row |
+| Date of Service | Box 24, first service line | First revenue line date |
+
+Output is a single `extracted_results.xlsx` workbook with one row per PDF page.
 
 ## Prerequisites
 
-Both must be installed before running the app.
+Both must be installed before running.
 
 **Tesseract 5**
 Download the Windows installer from [UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki).
@@ -12,7 +22,7 @@ Default install path: `C:\Program Files\Tesseract-OCR\tesseract.exe`
 
 **Poppler for Windows**
 Download from [oschwartz10612/poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases).
-Extract and note the `Library\bin` folder path.
+Extract the archive and note the path to the `Library\bin` folder.
 Default expected path: `C:\Program Files\poppler\Library\bin`
 
 **Python packages**
@@ -36,15 +46,30 @@ python main.py
 ```
 
 A window opens with:
-- **Select PDFs** — pick one or more scanned PDF files
+- **Select PDFs** — pick one or more scanned PDF files; multiple files can be selected at once
 - **Start** — process all selected files; a progress bar updates per page
 - **Open output file** — opens the Excel workbook when processing is done
 
-Failed pages appear in the error log and write a blank row with an error message in the output file.
+Pages that fail (bad scan, unrecognised form type) write a blank row with an error message in an `extraction_error` column. The error log in the window shows a summary of failures after the run completes.
 
 ## Output
 
-Results are written to `extracted_results.xlsx` on your Desktop (configurable). The workbook has a single **Results** sheet with one row per page. CMS-1500 and UB-04 fields appear as named columns. Cells with low-confidence OCR reads are highlighted yellow.
+Results are written to `extracted_results.xlsx` in the configured output directory (Desktop by default). The workbook has a single **Results** sheet:
+
+- One row per PDF page, in the order pages were processed
+- Three data columns: **Patient Name**, **Total Charge**, **Date of Service**
+- Date and charge columns are formatted as text to prevent Excel from converting values like `01/02/25` or `338.00` into numbers
+- Pages from multiple PDFs are combined into one sheet
+
+## Known Limitations
+
+- Input PDFs must be scanned from paper at 300 DPI, US Letter size. Digital (text-layer) PDFs are not supported.
+- A small number of pages will produce blank fields due to:
+  - **Label overlap** — pages where charge digits print inside the "TOTAL CHARGE" label area (left blank intentionally; wrong values are worse than blank)
+  - **Scan degradation** — heavily halftone-screened pages where the text is unreadable
+  - **Continuation pages** — CMS-1500 pages with "CONTINUATION" in Box 28 have no total charge by design
+  - **Non-standard layouts** — occasional forms with unusual date or name field placement
+- On the reference sample (30-page test batch), 88 of 96 field reads are non-empty (91.7%).
 
 ## Configuration
 
@@ -54,8 +79,7 @@ Create `settings.json` in the project folder to override any defaults:
 {
     "tesseract_cmd": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
     "poppler_path":  "C:\\Program Files\\poppler\\Library\\bin",
-    "confidence_threshold": 60,
-    "output_dir": "C:\\Users\\YourName\\Desktop"
+    "output_dir":    "C:\\Users\\YourName\\Desktop"
 }
 ```
 
@@ -63,16 +87,6 @@ Create `settings.json` in the project folder to override any defaults:
 |-----|---------|-------------|
 | `tesseract_cmd` | `C:\Program Files\Tesseract-OCR\tesseract.exe` | Full path to `tesseract.exe` |
 | `poppler_path` | `C:\Program Files\poppler\Library\bin` | Folder containing `pdftoppm.exe` |
-| `confidence_threshold` | `60` | OCR confidence below which a cell is highlighted yellow (0–100) |
 | `output_dir` | Desktop | Folder where `extracted_results.xlsx` is written |
 
 `settings.json` is gitignored — each machine keeps its own paths locally.
-
-## Supported Forms
-
-| Form | Fields extracted |
-|------|-----------------|
-| CMS-1500 | Boxes 1–33 including all six service lines (Box 24 SL1–SL6) |
-| UB-04 | Boxes 1–76 including all 22 revenue lines |
-
-Input PDFs must be scanned from paper at 300 DPI, US Letter size. Digital (text-layer) PDFs are not supported.
