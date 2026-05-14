@@ -46,6 +46,17 @@ settings.json
 # GSD planning directory (development workflow, not needed to run)
 .planning/
 
+# Developer documentation (not needed to run)
+CLAUDE.md
+
+# Test suite (not needed to run)
+tests/
+
+# Calibration and development utilities (not needed to run)
+pipeline/calibrate.py
+pipeline/calibrate_interactive.py
+sweep_all_pages.py
+
 # Diagnostic / debug images and scripts (generated during development)
 diag_*.png
 diag_*.py
@@ -58,9 +69,6 @@ debug_sl/
 # Calibration reference images (not used by production code)
 template_cms.png
 template_ub.png
-
-# Development utilities (not needed to run)
-sweep_all_pages.py
 
 # Test sample PDF (large binary, not needed to run)
 test.pdf
